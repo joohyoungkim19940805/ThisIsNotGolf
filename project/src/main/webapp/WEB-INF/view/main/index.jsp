@@ -287,7 +287,13 @@ asdasdasdasdasdasd
 <input type=submit value=chat>
 </form>
 
+<div>
 <a href="/chatTest_multi_access">chatTest_multi_access</a>
+</div>
+<br>
+<div>
+<a href="/chat_multi_access_multi_room">chat_multi_access_multi_room</a>
+</div>
 
 <input id="textValue" type=text/>
 <button onclick="submitTestFetch1(this)">버튼1</button>

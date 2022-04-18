@@ -144,5 +144,10 @@ public class MainController {
     	return "/main/chat_multi_access";
     }
     
+    @RequestMapping(value="/chat_multi_access_multi_room", method = {RequestMethod.POST, RequestMethod.GET})
+    public String chat_multi_access_multi_room() {
+    	
+    	return "/main/chat_multi_access_multi_room";
+    }
     
 }

@@ -6,21 +6,9 @@
 <title>Insert title here</title>
 <script type="text/javascript">
 	const configuration = Object.freeze({
-		'iceServers': [
-		    {
-		      'urls': 'stun:stun.l.google.com:19302'
-		    },
-		    {
-		      'urls': 'turn:10.158.29.39:3478?transport=udp',
-		      'credential': 'XXXXXXXXXXXXX',
-		      'username': 'XXXXXXXXXXXXXXX'
-		    },
-		    {
-		      'urls': 'turn:10.158.29.39:3478?transport=tcp',
-		      'credential': 'XXXXXXXXXXXXX',
-		      'username': 'XXXXXXXXXXXXXXX'
-		    }
-		  ]
+			"iceServers" : [ {
+				"url" : "stun:stun2.1.google.com:19302"
+			} ]
 		});
 	
 	const socket = new WebSocket('ws://localhost:8079/video_chat');
@@ -31,11 +19,7 @@
 	
 	const offerList = [];
 	
-	const noAnswer = false;
-	
 	var roomData;
-	
-	var p2pInfo = {};
 	
 	var client_info;
 	
@@ -58,9 +42,6 @@
 					.map(e=>e.dataChannel.close());
 		}
 	};
-	
-	var test;
-	var test2;
 	
 	//서버쪽에서 메세지가 전달된 순간 onmessage가 실행된다.
 	socket.onmessage = function(msg) {
@@ -90,7 +71,7 @@
 	    		console.log(content);
 	    		let newAccessUserCount = content.access_user - roomData.length;
 	    		console.log(newAccessUserCount);
-				
+	    		
 	    		let newUserAccessRoom = new Chat_client(content.client_info.client_id);
 				console.log(newUserAccessRoom);
 				roomData.push(newUserAccessRoom);
@@ -132,16 +113,13 @@
 		        }
 		    	break;
 		    case "answer":
-		    	if(noAnswer == false){
-		    		console.log(roomData.find(e=> e.peerReady == false && e.channelReady == false))
-		    		let findTargetRoom = roomData.find(e => e.accessUser == data.answer_req_id &&
-		    												e.channelReady == true &&
-		    												e.peerReady == true);
-		    		if(findTargetRoom){
-		    			handleAnswer(findTargetRoom, data);
-		    		}
-		    		//noAnswer = !result;
-		    	}
+	    		console.log(roomData.find(e=> e.peerReady == false && e.channelReady == false))
+	    		let findTargetRoom = roomData.find(e => e.accessUser == data.answer_req_id &&
+	    												e.channelReady == true &&
+	    												e.peerReady == true);
+	    		if(findTargetRoom){
+	    			handleAnswer(findTargetRoom, data);
+	    		}
 		        break;
 		    // when a remote peer sends an ice candidate to us
 		    case "candidate":
