@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+    
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS}[%-5level] : %msg%n</pattern>
+        </encoder>
+    </appender>
+    
+    <root level="debug">
+        <appender-ref ref="STDOUT"/>
+    </root>
+    
+    <!-- Service 영역에서 발생하는 로그는 로컬환경에서 출력하지 않도록 설정 -->
+    <logger level="OFF" name="com.radcns.decaplus.aop.ServiceAOP">
+    	<appender-ref ref="STDOUT" />
+    </logger>
+    
+</configuration>

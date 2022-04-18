@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" scanPeriod="30 seconds">
+
+    <!-- Log basic path -->
+    <property name="LOG_DIR" value="/log/decaplus-springboot-sample" />
+
+    <!-- Application ERROR -->
+    <appender name="appError" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <prudent>false</prudent>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <encoder>
+            <pattern>
+                ▶ %-5level %d{HH:mm:ss.SSS} [%c] [%thread] %logger[%method:%line] - %msg%n%ex ------------------------------------------------------------------------------------------------------------%n
+            </pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/error/error_%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>3MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+    
+    <root level="ERROR">
+        <appender-ref ref="appError" />
+    </root>
+
+    <!-- File Upload의 데이터 전송 구간에 대한 Logger Level를 ERROR로 설정 -->
+    <logger level="ERROR" name="org.apache.http.wire"/>
+    
+    <!-- Service 영역에서 발생하는 에러로그 -->
+    <appender name="serviceError" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--  -->
+        <prudent>false</prudent>
+        <filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+            <level>ERROR</level>
+        </filter>
+        <encoder>
+            <pattern>
+                ▶ %-5level %d{HH:mm:ss.SSS} [%c] [%thread] %logger[%method:%line] - %msg%n%ex ------------------------------------------------------------------------------------------------------------%n
+            </pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/error/service_error_%d{yyyy-MM-dd}_%i.log</fileNamePattern>
+            <timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+                <maxFileSize>3MB</maxFileSize>
+            </timeBasedFileNamingAndTriggeringPolicy>
+            <maxHistory>30</maxHistory>
+        </rollingPolicy>
+    </appender>
+    
+    <logger level="ERROR" name="com.radcns.decaplus.aop.ServiceAOP">
+        <appender-ref ref="serviceError" />
+    </logger>
+    
+</configuration>
