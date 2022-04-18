@@ -2,6 +2,7 @@ package com.hide_and_fps.project.config;
 
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -40,6 +41,7 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 																{
 																	"client_id" : "%s" ,
 																	"client_room_url" : "%s"
+																	"access_time" : "%d"
 																},
 												"event" : "%s",
 												"access_user" : %d
@@ -122,7 +124,7 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 				{
 					"data" : [
 												%s
-											],
+							],
 					"event" : "user_list"
 				}
 				""";
@@ -133,5 +135,27 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 											})
 											.collect(Collectors.joining(","));
 		return roomAccessUsess.formatted( users );
+	}
+	
+	private String createEventClientMsgTemplate(Map data) {
+		
+		return eventClientMsgTemplate;
+	}
+	
+	public static void main(String a[]) {
+		String eventClientMsgTemplate = """
+											{
+											"client_info" : 
+															{
+																"client_id" : "%s" ,
+																"client_room_url" : "%s"
+																"access_time" : "%d"
+															},
+											"event" : "%s",
+											"access_user" : %d
+										}""";
+		String qq[] = {"1","2","3","4","5"};
+		String test = eventClientMsgTemplate.formatted(qq);
+		System.out.println(test);
 	}
 }

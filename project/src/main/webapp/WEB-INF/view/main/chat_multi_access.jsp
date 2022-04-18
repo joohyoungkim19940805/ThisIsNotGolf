@@ -71,7 +71,7 @@
 	    		console.log(content);
 	    		let newAccessUserCount = content.access_user - roomData.length;
 	    		console.log(newAccessUserCount);
-	    		
+				
 	    		let newUserAccessRoom = new Chat_client(content.client_info.client_id);
 				console.log(newUserAccessRoom);
 				roomData.push(newUserAccessRoom);
@@ -114,11 +114,14 @@
 		    	break;
 		    case "answer":
 	    		console.log(roomData.find(e=> e.peerReady == false && e.channelReady == false))
-	    		let findTargetRoom = roomData.find(e => e.accessUser == data.answer_req_id &&
-	    												e.channelReady == true &&
-	    												e.peerReady == true);
-	    		if(findTargetRoom){
-	    			handleAnswer(findTargetRoom, data);
+	    		if(roomData){
+	    			let findTargetRoom = roomData.find(e => e.accessUser == data.answer_req_id &&
+	    													e.channelReady == true &&
+	    													e.peerReady == true);
+	    		
+		    		if(findTargetRoom){
+		    			handleAnswer(findTargetRoom, data);
+		    		}
 	    		}
 		        break;
 		    // when a remote peer sends an ice candidate to us
