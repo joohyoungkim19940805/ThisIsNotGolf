@@ -3,8 +3,11 @@ package com.hide_and_fps.project.config;
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.function.Function;
@@ -36,7 +39,7 @@ public class SocketMssageHandler extends TextWebSocketHandler {
     private int sendBufferSizeLimit = 512 * 1024;
     
     private final String eventClientMsgTemplate = """
-												{
+											{
 												"client_info" : 
 																{
 																	"client_id" : "%s" ,
@@ -46,6 +49,7 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 												"event" : "%s",
 												"access_user" : %d
 											}""";
+    private final List<String> createEventClientMsgTemplate = Arrays.asList( eventClientMsgTemplate.replaceAll("[{}]", "").split("\n") );
 									    
     //발송한 사람의 session을 제외한 receptionSessionsList(수신 유저 리스트)에 message를 전달한다.
     @Override
@@ -137,25 +141,74 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 		return roomAccessUsess.formatted( users );
 	}
 	
+	@SuppressWarnings("unchecked")
 	private String createEventClientMsgTemplate(Map data) {
-		
-		return eventClientMsgTemplate;
+		return eventClientMsgTemplate.formatted(
+					Arrays.stream( eventClientMsgTemplate.split("\n") )
+						.map(str -> {
+								return ((Entry<String, Object>) data.entrySet().stream().filter(entry -> {
+									return str.contains((CharSequence) ((Entry<String, String>) entry).getKey());
+											}).findFirst()
+											.orElseGet(() -> Map.entry("a", "a")) )
+											.getValue().toString();
+						}).toArray()
+				);
 	}
 	
 	public static void main(String a[]) {
 		String eventClientMsgTemplate = """
-											{
+										{
 											"client_info" : 
 															{
 																"client_id" : "%s" ,
-																"client_room_url" : "%s"
-																"access_time" : "%d"
+																"client_room_url" : "%s",
+																"test" : "%s",
+																"access_time" : "%s"
 															},
 											"event" : "%s",
-											"access_user" : %d
+											"access_user" : %s
 										}""";
-		String qq[] = {"1","2","3","4","5"};
-		String test = eventClientMsgTemplate.formatted(qq);
-		System.out.println(test);
+		List<String> createEventClientMsgTemplate = Arrays.asList( eventClientMsgTemplate.replaceAll("[{}\t,\" ]", "").stripLeading().split("\n") );
+		Object qq[] = {"1","2",3,"4",5};
+		//String test = eventClientMsgTemplate.formatted(qq);
+		
+		Map data = Map.ofEntries(
+				Map.entry("client_id", "idVal"),
+				Map.entry("access_time", 9999999),
+				Map.entry("event", "eventName"),
+				Map.entry("access_user", 5),
+				Map.entry("test", "test"),
+				Map.entry("client_room_url", "urlVal")
+				);
+		System.out.println(data);
+		/*
+		Object test2[] = Arrays.asList( eventClientMsgTemplate.split("\n") ).parallelStream()
+						.map(str -> {
+								return ((Entry<String, Object>) data.entrySet().parallelStream().filter(entry -> {
+									System.out.println(str);
+									return str.contains((CharSequence) ((Entry<String, String>) entry).getKey());
+											}).findFirst()
+										.orElseGet(() -> Map.entry("", "")) )
+										.getValue().toString();
+						})
+						.filter(values -> values.isBlank()==false)
+						.toArray();
+		*/
+		Object test2[] = createEventClientMsgTemplate.parallelStream()
+				.map(str -> {
+						return ((Entry<String, Object>) data.entrySet().parallelStream().filter(entry -> {
+							System.out.println(str);
+							return str.contains((CharSequence) ((Entry<String, String>) entry).getKey());
+									}).findFirst()
+								.orElseGet(() -> Map.entry("", "")) )
+								.getValue().toString();
+				})
+				.filter(values -> values.isBlank()==false)
+				.toArray();
+		
+		System.out.println(eventClientMsgTemplate.formatted( test2 ));
+
+		createEventClientMsgTemplate.forEach(System.out::println);
+
 	}
 }
