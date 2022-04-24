@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -24,6 +25,10 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import com.hide_and_fps.business_logic.vo.clientInfo.ClientInfoVO;
+
+import static java.util.Map.entry;
+
 @Component
 public class SocketMssageHandler extends TextWebSocketHandler {
 
@@ -38,19 +43,7 @@ public class SocketMssageHandler extends TextWebSocketHandler {
     
     private int sendBufferSizeLimit = 512 * 1024;
     
-    private final String eventClientMsgTemplate = """
-											{
-												"client_info" : 
-																{
-																	"client_id" : "%s" ,
-																	"client_room_url" : "%s"
-																	"access_time" : "%d"
-																},
-												"event" : "%s",
-												"access_user" : %d
-											}""";
-    private final List<String> createEventClientMsgTemplate = Arrays.asList( eventClientMsgTemplate.replaceAll("[{}]", "").split("\n") );
-									    
+					    
     //발송한 사람의 session을 제외한 receptionSessionsList(수신 유저 리스트)에 message를 전달한다.
     @Override
     public void handleTextMessage(WebSocketSession sendSession, TextMessage message) throws InterruptedException, IOException {
@@ -75,11 +68,16 @@ public class SocketMssageHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
     			
-    	byte[] clientInfo = eventClientMsgTemplate.formatted(session.getId(), session.getUri().getPath(), "user", sessionIdList.size()).getBytes();
+    	//새로운 접속자에게 자기자신의 클라이언트 정보 넘겨주기
+    	byte[] clientInfo = setClientInfoTemplate(session, "user").getBytes();
 		sendMessage(session, new TextMessage(clientInfo));
+		
+		// 새로운 접속자에게 기존에 방에 접속 중인 유저들 정보 넘겨주기
 		sendMessage(session, new TextMessage( createRoomAccessUsersInfo().getBytes()) );
-    	byte[] newUserClientInfo = eventClientMsgTemplate.formatted(session.getId(), session.getUri().getPath(), "new_access", sessionIdList.size()).getBytes();
-		sessionIdList.parallelStream().forEach(sessionId-> {
+    	
+		// 기존에 접속 중이던 유저들에게 새로운 유저 정보 넘겨주기
+		byte[] newUserClientInfo = setClientInfoTemplate(session, "new_access").getBytes();
+    	sessionIdList.parallelStream().forEach(sessionId-> {
 			sendMessage(receptionSessionsMap.get(sessionId), new TextMessage(newUserClientInfo));
 		});
 		sessionIdList.add(session.getId());
@@ -117,7 +115,8 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 	private void outRoomUserRemove(WebSocketSession session) {
 		sessionIdList.remove(session.getId());
 		receptionSessionsMap.remove(session.getId());
-		byte[] deleteUserInfo = eventClientMsgTemplate.formatted(session.getId(), session.getUri().getPath(), "delete", sessionIdList.size()).getBytes();
+		byte[] deleteUserInfo = setClientInfoTemplate(session, "delete").getBytes();
+
 		sessionIdList.parallelStream().forEach(sessionId-> {
 			sendMessage(receptionSessionsMap.get(sessionId), new TextMessage(deleteUserInfo));
 		});
@@ -135,80 +134,19 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 		String users = sessionIdList.parallelStream()
 											.map(sessionId ->  {
 												WebSocketSession session = receptionSessionsMap.get(sessionId);
-												return eventClientMsgTemplate.formatted(session.getId(), session.getUri(), "user_list", sessionIdList.size());
+												return setClientInfoTemplate(session, "user_list");
 											})
 											.collect(Collectors.joining(","));
 		return roomAccessUsess.formatted( users );
 	}
-	
-	@SuppressWarnings("unchecked")
-	private String createEventClientMsgTemplate(Map data) {
-		return eventClientMsgTemplate.formatted(
-					Arrays.stream( eventClientMsgTemplate.split("\n") )
-						.map(str -> {
-								return ((Entry<String, Object>) data.entrySet().stream().filter(entry -> {
-									return str.contains((CharSequence) ((Entry<String, String>) entry).getKey());
-											}).findFirst()
-											.orElseGet(() -> Map.entry("a", "a")) )
-											.getValue().toString();
-						}).toArray()
-				);
-	}
-	
-	public static void main(String a[]) {
-		String eventClientMsgTemplate = """
-										{
-											"client_info" : 
-															{
-																"client_id" : "%s" ,
-																"client_room_url" : "%s",
-																"test" : "%s",
-																"access_time" : "%s"
-															},
-											"event" : "%s",
-											"access_user" : %s
-										}""";
-		List<String> createEventClientMsgTemplate = Arrays.asList( eventClientMsgTemplate.replaceAll("[{}\t,\" ]", "").stripLeading().split("\n") );
-		Object qq[] = {"1","2",3,"4",5};
-		//String test = eventClientMsgTemplate.formatted(qq);
+	public String setClientInfoTemplate(WebSocketSession session, String event_type) {
 		
-		Map data = Map.ofEntries(
-				Map.entry("client_id", "idVal"),
-				Map.entry("access_time", 9999999),
-				Map.entry("event", "eventName"),
-				Map.entry("access_user", 5),
-				Map.entry("test", "test"),
-				Map.entry("client_room_url", "urlVal")
-				);
-		System.out.println(data);
-		/*
-		Object test2[] = Arrays.asList( eventClientMsgTemplate.split("\n") ).parallelStream()
-						.map(str -> {
-								return ((Entry<String, Object>) data.entrySet().parallelStream().filter(entry -> {
-									System.out.println(str);
-									return str.contains((CharSequence) ((Entry<String, String>) entry).getKey());
-											}).findFirst()
-										.orElseGet(() -> Map.entry("", "")) )
-										.getValue().toString();
-						})
-						.filter(values -> values.isBlank()==false)
-						.toArray();
-		*/
-		Object test2[] = createEventClientMsgTemplate.parallelStream()
-				.map(str -> {
-						return ((Entry<String, Object>) data.entrySet().parallelStream().filter(entry -> {
-							System.out.println(str);
-							return str.contains((CharSequence) ((Entry<String, String>) entry).getKey());
-									}).findFirst()
-								.orElseGet(() -> Map.entry("", "")) )
-								.getValue().toString();
-				})
-				.filter(values -> values.isBlank()==false)
-				.toArray();
-		
-		System.out.println(eventClientMsgTemplate.formatted( test2 ));
-
-		createEventClientMsgTemplate.forEach(System.out::println);
-
+		return new ClientInfoVO(Map.ofEntries(
+				entry("client_id",session.getId())
+				, entry("client_room_url", session.getUri().getPath())
+				, entry("access_time", new Date().getTime())
+				, entry("event",event_type)
+				, entry("access_user", sessionIdList.size())
+		)).getClientInfo();
 	}
 }

@@ -14,7 +14,7 @@ public class WebSocketConfiguration implements WebSocketConfigurer {
 	 */
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
-        registry.addHandler(new SocketMssageHandler(), "/video_chat")
+        registry.addHandler(new SocketMssageHandler(), "/{room}")
           		.setAllowedOrigins("*");
     }
 }
