@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
@@ -25,7 +26,10 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
-import com.hide_and_fps.business_logic.vo.clientInfo.ClientInfoVO;
+import com.hide_and_fps.project.room.vo.RoomVO;
+import com.hide_and_fps.project.user.vo.ClientInfoVO;
+
+import ch.qos.logback.core.net.server.ConcurrentServerRunner;
 
 import static java.util.Map.entry;
 
@@ -34,11 +38,8 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 
 	private static final Logger logger = LoggerFactory.getLogger(SocketMssageHandler.class);
 	
-	//message를 수신한 사용자 리스트
-    List<String> sessionIdList = new CopyOnWriteArrayList<>();    
+    private final RoomVO room = new RoomVO();
     
-    private final Map<String, WebSocketSession> receptionSessionsMap = new ConcurrentHashMap<>();
-
     private int sendTimeLimit = (int)TimeUnit.SECONDS.toMillis(10);
     
     private int sendBufferSizeLimit = 512 * 1024;
@@ -47,11 +48,11 @@ public class SocketMssageHandler extends TextWebSocketHandler {
     //발송한 사람의 session을 제외한 receptionSessionsList(수신 유저 리스트)에 message를 전달한다.
     @Override
     public void handleTextMessage(WebSocketSession sendSession, TextMessage message) throws InterruptedException, IOException {
-    	sessionIdList.parallelStream().forEach(sessionId-> {
-    		logger.debug(message.getPayload());
-			WebSocketSession webSocketSession = receptionSessionsMap.get(sessionId);
-            if (sendSession.getId().equals(webSocketSession.getId()) == false) {
-                	sendMessage(webSocketSession, message);
+    	//sessionIdList.parallelStream().forEach(sessionId-> {
+    	room.get(sendSession.getUri().getPath()).parallelStream().forEach(client ->{
+    		//logger.debug(message.getPayload());
+            if (sendSession.getId().equals(client.getClientId()) == false) {
+                	sendMessage(client.getSessionDecorator(), message);
             }
 
             /*
@@ -67,21 +68,27 @@ public class SocketMssageHandler extends TextWebSocketHandler {
     //메시지를 수신한 세션 값을 add한다.
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-    			
+    	
+    	//접속자 데이터 생성
+    	ClientInfoVO clientInfoVo = setClientInfoTemplate(session);
+    	room.settingRoom(session.getUri().getPath(), session, clientInfoVo);
     	//새로운 접속자에게 자기자신의 클라이언트 정보 넘겨주기
-    	byte[] clientInfo = setClientInfoTemplate(session, "user").getBytes();
-		sendMessage(session, new TextMessage(clientInfo));
+    	
+    	byte[] clientInfo = clientInfoVo.changeEventType("user").getBytes();
+    			//setClientInfoTemplate(session, "user").getClientInfoToByte();
+		sendMessage(clientInfoVo.getSessionDecorator(), new TextMessage(clientInfo));
 		
 		// 새로운 접속자에게 기존에 방에 접속 중인 유저들 정보 넘겨주기
-		sendMessage(session, new TextMessage( createRoomAccessUsersInfo().getBytes()) );
+		sendMessage(clientInfoVo.getSessionDecorator(), new TextMessage( createRoomAccessUsersInfo(clientInfoVo).getBytes()) );
     	
 		// 기존에 접속 중이던 유저들에게 새로운 유저 정보 넘겨주기
-		byte[] newUserClientInfo = setClientInfoTemplate(session, "new_access").getBytes();
-    	sessionIdList.parallelStream().forEach(sessionId-> {
-			sendMessage(receptionSessionsMap.get(sessionId), new TextMessage(newUserClientInfo));
+		byte[] newUserClientInfo = clientInfoVo.changeEventType("new_access").getBytes();
+		room.get(session.getUri().getPath()).parallelStream().forEach(client -> {
+			sendMessage(client.getSessionDecorator(), new TextMessage(newUserClientInfo));
+			//sendMessage(receptionSessionsMap.get(sessionId), new TextMessage(newUserClientInfo));
 		});
-		sessionIdList.add(session.getId());
-    	receptionSessionsMap.put(session.getId(), new ConcurrentWebSocketSessionDecorator (session, sendTimeLimit, sendBufferSizeLimit));
+		//sessionIdList.add(session.getId());
+    	//receptionSessionsMap.put(session.getId(), new ConcurrentWebSocketSessionDecorator (session, sendTimeLimit, sendBufferSizeLimit));
     	super.afterConnectionEstablished(session);
     }
     
@@ -115,14 +122,14 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 	private void outRoomUserRemove(WebSocketSession session) {
 		sessionIdList.remove(session.getId());
 		receptionSessionsMap.remove(session.getId());
-		byte[] deleteUserInfo = setClientInfoTemplate(session, "delete").getBytes();
+		byte[] deleteUserInfo = setClientInfoTemplate(session, "delete").getClientInfoToByte();
 
 		sessionIdList.parallelStream().forEach(sessionId-> {
 			sendMessage(receptionSessionsMap.get(sessionId), new TextMessage(deleteUserInfo));
 		});
 	}
 	
-	public String createRoomAccessUsersInfo() throws Exception{
+	public String createRoomAccessUsersInfo(ClientInfoVO clientInfoVo) throws Exception{
 		String roomAccessUsess = """
 				{
 					"data" : [
@@ -134,19 +141,20 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 		String users = sessionIdList.parallelStream()
 											.map(sessionId ->  {
 												WebSocketSession session = receptionSessionsMap.get(sessionId);
-												return setClientInfoTemplate(session, "user_list");
+												return setClientInfoTemplate(session, "user_list").getSendClientInfoTemplate();
 											})
 											.collect(Collectors.joining(","));
 		return roomAccessUsess.formatted( users );
 	}
-	public String setClientInfoTemplate(WebSocketSession session, String event_type) {
+	public ClientInfoVO setClientInfoTemplate(WebSocketSession session) {
 		
 		return new ClientInfoVO(Map.ofEntries(
 				entry("client_id",session.getId())
 				, entry("client_room_url", session.getUri().getPath())
 				, entry("access_time", new Date().getTime())
-				, entry("event",event_type)
+				, entry("event","")
 				, entry("access_user", sessionIdList.size())
-		)).getClientInfo();
+				, entry("sessionDecorator", new ConcurrentWebSocketSessionDecorator (session, sendTimeLimit, sendBufferSizeLimit))
+		));
 	}
 }
