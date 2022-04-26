@@ -138,10 +138,11 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 					"event" : "user_list"
 				}
 				""";
-		String users = sessionIdList.parallelStream()
-											.map(sessionId ->  {
-												WebSocketSession session = receptionSessionsMap.get(sessionId);
-												return setClientInfoTemplate(session, "user_list").getSendClientInfoTemplate();
+		String users = room.get(clientInfoVo.getClient_room_url()).parallelStream()
+											.map(client ->  {
+												return client.changeEventType("user_list");
+												//WebSocketSession session = receptionSessionsMap.get(sessionId);
+												//return setClientInfoTemplate(session, "user_list").getSendClientInfoTemplate();
 											})
 											.collect(Collectors.joining(","));
 		return roomAccessUsess.formatted( users );

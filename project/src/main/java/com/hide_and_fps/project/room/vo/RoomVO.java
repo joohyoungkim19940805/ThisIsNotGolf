@@ -29,4 +29,11 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
 		super.get(room_id).add(clientInfoVo);
 		return true;
 	}
+	
+	public int roomUserCount(String room_id) {
+		if(super.containsKey(room_id){
+			return super.get(room_id).size();
+		}
+		return 0;
+	}
 }

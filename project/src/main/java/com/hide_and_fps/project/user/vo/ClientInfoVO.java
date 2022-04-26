@@ -71,6 +71,10 @@ public class ClientInfoVO {
 		return this.client_id;
 	}
 	
+	public String getClient_room_url() {
+		return this.client_room_url;
+	}
+	
 	public ConcurrentWebSocketSessionDecorator getSessionDecorator() {
 		return this.sessionDecorator;
 	}
