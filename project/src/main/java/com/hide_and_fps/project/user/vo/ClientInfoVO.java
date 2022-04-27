@@ -51,7 +51,7 @@ public class ClientInfoVO {
 				, this.access_user
 				);
 	}
-	
+	/*
 	public byte[] getClientInfoToByte() {
 		return clientInfoTemplate.formatted(
 				this.client_id
@@ -61,7 +61,7 @@ public class ClientInfoVO {
 				, this.access_user
 				).getBytes();
 	}
-	
+	*/
 	public String changeEventType(String event) {
 		this.event = event;
 		return getSendClientInfoTemplate();
