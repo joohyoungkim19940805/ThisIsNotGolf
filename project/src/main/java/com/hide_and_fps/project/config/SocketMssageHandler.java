@@ -1,36 +1,26 @@
 package com.hide_and_fps.project.config;
 
 import java.io.IOException;
-import java.nio.channels.ClosedChannelException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.ibatis.javassist.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
-import org.springframework.web.socket.WebSocketMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import com.hide_and_fps.project.room.vo.RoomVO;
 import com.hide_and_fps.project.user.vo.ClientInfoVO;
-
-import ch.qos.logback.core.net.server.ConcurrentServerRunner;
 
 import static java.util.Map.entry;
 
@@ -71,21 +61,19 @@ public class SocketMssageHandler extends TextWebSocketHandler {
     //메시지를 수신한 세션 값을 add한다.
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
-    	
+
     	//접속자 데이터 생성
     	ClientInfoVO clientInfoVo = setClientInfoTemplate(session);
-    	room.settingRoom(session.getUri().getPath(), session, clientInfoVo);
+    	room.settingRoom(session.getUri().getPath(), clientInfoVo);
     	//새로운 접속자에게 자기자신의 클라이언트 정보 넘겨주기
     	
-    	byte[] clientInfo = clientInfoVo.changeEventType("user").getBytes();
-    			//setClientInfoTemplate(session, "user").getClientInfoToByte();
-		sendMessage(clientInfoVo.getSessionDecorator(), new TextMessage(clientInfo));
+		sendMessage(clientInfoVo.getSessionDecorator(), new TextMessage(clientInfoVo.changeEventType("user")));
 		
 		// 새로운 접속자에게 기존에 방에 접속 중인 유저들 정보 넘겨주기
-		sendMessage(clientInfoVo.getSessionDecorator(), new TextMessage( createRoomAccessUsersInfo(clientInfoVo).getBytes()) );
+		sendMessage(clientInfoVo.getSessionDecorator(), new TextMessage( createRoomAccessUsersInfo(clientInfoVo)) );
     	
 		// 기존에 접속 중이던 유저들에게 새로운 유저 정보 넘겨주기
-		byte[] newUserClientInfo = clientInfoVo.changeEventType("new_access").getBytes();
+		String newUserClientInfo = clientInfoVo.changeEventType("new_access");
 		room.get(session.getUri().getPath()).parallelStream().forEach(client -> {
 			if(session.getId().equals(client.getClientId()) == false) {
 				sendMessage(client.getSessionDecorator(), new TextMessage( newUserClientInfo ));
@@ -128,18 +116,24 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 		System.out.println( room.get(session.getUri().getPath()).size() );
 		System.out.println(room.get(session.getUri().getPath()));
 		try {
-			ClientInfoVO client = room.outRoomRemoveUser(session);
-			if(client != null) {
-				byte[] deleteUserInfo = client.changeEventType("delete").getBytes();
-						//setClientInfoTemplate(session, "delete").getClientInfoToByte();
-	
-				room.get(session.getUri().getPath()).parallelStream().forEach(notOutRoomClient-> {
-					if(client.getClientId().equals(notOutRoomClient.getClientId()) == false) {
-						sendMessage(notOutRoomClient.getSessionDecorator() , new TextMessage(deleteUserInfo));
-					}
-				});
-				
-			}}catch(NotFoundException e){}/*
+				ClientInfoVO client = room.outRoomRemoveUser(session);
+				if(client != null) {
+					String deleteUserInfo = client.changeEventType("delete");
+							//setClientInfoTemplate(session, "delete").getClientInfoToByte();
+					List<ClientInfoVO> clientList = room.get(session.getUri().getPath());
+					Optional.ofNullable(clientList)
+						    .orElseGet(Collections::emptyList)
+						    .stream()
+						    .forEach(notOutRoomClient-> {
+								if(client.getClientId().equals(notOutRoomClient.getClientId()) == false) {
+									sendMessage(notOutRoomClient.getSessionDecorator() , new TextMessage(deleteUserInfo));
+								}
+							});
+					
+				}
+			}catch(NotFoundException e){
+				logger.error("error<<<<<<<<<<<<<<<<<<<<<<<<<<<<<", e);
+			}/*
 			session.close();
 		} catch (IOException e) {
 			session = null;

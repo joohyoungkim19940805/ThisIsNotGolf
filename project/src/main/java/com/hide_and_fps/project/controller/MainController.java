@@ -10,6 +10,7 @@ import javax.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -139,14 +140,17 @@ public class MainController {
     }
     
     @RequestMapping(value="/chatTest_multi_access", method = {RequestMethod.POST, RequestMethod.GET})
-    public String chatTest_multi_access() {
-    	
+    public String chatTest_multi_access(HttpSession session) {
+    	System.out.println(session);
+    	System.out.println(session.getId());
     	return "/main/chat_multi_access";
     }
     
     @RequestMapping(value="/chat_multi_access_multi_room", method = {RequestMethod.POST, RequestMethod.GET})
-    public String chat_multi_access_multi_room() {
-    	
+    public String chat_multi_access_multi_room(HttpSession session, Model model) {
+    	model.addAttribute("room_number", createRandomCodeUtil.createCode());
+    	System.out.println(session);
+    	System.out.println(session.getId());
     	return "/main/chat_multi_access_multi_room";
     }
     

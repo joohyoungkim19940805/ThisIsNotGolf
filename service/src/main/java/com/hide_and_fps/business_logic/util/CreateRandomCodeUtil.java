@@ -54,12 +54,16 @@ public class CreateRandomCodeUtil {
 		}
 	}
 
-	/*
+	
 	public static void main(String a[]) throws IllegalBlockSizeException, BadPaddingException {
 		CreateRandomCodeUtil createRandomCodeUtil = new CreateRandomCodeUtil();
-		System.out.println( createRandomCodeUtil.createCode(new byte[32]) );
+		byte[] te = createRandomCodeUtil.createCode().getBytes();
+		for(byte by:te) {
+			System.out.println(by);
+		}
+		System.out.println( createRandomCodeUtil.createCode().getBytes() );
 		System.out.println( createRandomCodeUtil.createCode(new byte[32]) );
 		System.out.println( createRandomCodeUtil.createCode(new byte[32]) );	
 	}
-	*/
+	
 }

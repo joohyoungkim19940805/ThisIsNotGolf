@@ -78,5 +78,13 @@ public class ClientInfoVO {
 	public ConcurrentWebSocketSessionDecorator getSessionDecorator() {
 		return this.sessionDecorator;
 	}
+
+	public ClientInfoVO get() {
+		if(sessionDecorator != null) {
+			return this;
+		}else {
+			return null;
+		}
+	}
 	
 }

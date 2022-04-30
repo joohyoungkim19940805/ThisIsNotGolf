@@ -6,10 +6,22 @@
 <title>Insert title here</title>
 <script type="text/javascript">
 	const configuration = Object.freeze({
-			"iceServers" : [ {
-				"url" : "stun:stun2.1.google.com:19302"
-			} ]
-		});
+		  'iceServers': [
+			    {
+			      'urls': 'stun:stun.l.google.com:19302'
+			    },
+			    {
+			      'urls': 'turn:10.158.29.39:3478?transport=udp',
+			      'credential': 'XXXXXXXXXXXXX',
+			      'username': 'XXXXXXXXXXXXXXX'
+			    },
+			    {
+			      'urls': 'turn:10.158.29.39:3478?transport=tcp',
+			      'credential': 'XXXXXXXXXXXXX',
+			      'username': 'XXXXXXXXXXXXXXX'
+			    }
+			  ]
+			});
 	
 	const socket = new WebSocket('ws://localhost:8079/150');
 	
