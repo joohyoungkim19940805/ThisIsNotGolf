@@ -5,8 +5,11 @@
 <meta charset="UTF-8">
 <title>Insert title here</title>
 <script type="text/javascript" src="/static/js/client/SocketManager.js"></script>
+<script type="text/javascript" src="/static/js/client/RtcClientManager.js"></script>
 <script type="text/javascript">
-var test = new SocketManager(null, null, "${room_number}");
+var test2;
+var test = new SocketManager(Client, "${room_number}");
+
 </script>
 </head>
 <body>
