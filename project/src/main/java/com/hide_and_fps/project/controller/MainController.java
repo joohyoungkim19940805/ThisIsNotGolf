@@ -43,7 +43,8 @@ public class MainController {
 
     
 	@GetMapping("/")
-    public String hello() {
+    public String hello(HttpSession session) {
+		session.setAttribute("testId", "testValue");
     	HashMap<String, Object> model = new HashMap<String, Object>();
 		/*
     	SyAdminDto syAdminDto = this.syAdminService.getAdminById(1);
@@ -143,6 +144,7 @@ public class MainController {
     public String chatTest_multi_access(HttpSession session) {
     	System.out.println(session);
     	System.out.println(session.getId());
+    	System.out.println(session.getAttribute("testId"));
     	return "/main/chat_multi_access";
     }
     
