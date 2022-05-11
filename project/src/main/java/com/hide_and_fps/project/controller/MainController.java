@@ -30,6 +30,7 @@ import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry
 import com.hide_and_fps.business_logic.service.file.FileUploadService;
 import com.hide_and_fps.business_logic.service.system.SyAdminService;
 import com.hide_and_fps.business_logic.util.CreateRandomCodeUtil;
+import com.hide_and_fps.project.room.vo.RoomVO;
 
 @Controller
 @RequestMapping("")
@@ -40,7 +41,6 @@ public class MainController {
 	
 	@Autowired
 	private CreateRandomCodeUtil createRandomCodeUtil;
-
     
 	@GetMapping("/")
     public String hello(HttpSession session) {
@@ -148,11 +148,17 @@ public class MainController {
     	return "/main/chat_multi_access";
     }
     
-    @RequestMapping(value="/chat_multi_access_multi_room", method = {RequestMethod.POST, RequestMethod.GET})
-    public String chat_multi_access_multi_room(HttpSession session, Model model) {
+    @RequestMapping(value="/chat_multi_access_multi_room_gate", method = {RequestMethod.POST, RequestMethod.GET})
+    public String chat_multi_access_multi_room_gate(HttpSession session, Model model) {
     	model.addAttribute("room_number", createRandomCodeUtil.createCode());
-    	System.out.println(session);
-    	System.out.println(session.getId());
+    	
+    	return "/main/chat_multi_access_multi_room_gate";
+    }
+    
+    @RequestMapping(value="/chat_multi_access_multi_room", method = {RequestMethod.POST, RequestMethod.GET})
+    public String chat_multi_access_multi_room(HttpSession session, Model model, @RequestParam(value="access") String access_code) {
+    	model.addAttribute("access_code", access_code);
+    	
     	return "/main/chat_multi_access_multi_room";
     }
     

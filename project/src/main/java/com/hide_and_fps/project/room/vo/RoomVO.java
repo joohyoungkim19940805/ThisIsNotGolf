@@ -2,6 +2,7 @@ package com.hide_and_fps.project.room.vo;
 
 import static java.util.Map.entry;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -22,17 +23,61 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
 	/**
 	 * 
 	 */
+	
 	private static final long serialVersionUID = 5921574994014358062L;
 
-	private final CreateRandomCodeUtil randomCode = new CreateRandomCodeUtil();
+	private final CreateRandomCodeUtil randomCode = new CreateRandomCodeUtil();	
 	
-	private final List<String> roomList = new CopyOnWriteArrayList<>();
+	private final CopyOnWriteArrayList<String> roomWaiting = new CopyOnWriteArrayList<>();
+	
+	private final ConcurrentHashMap<String, String> clientMapping = new ConcurrentHashMap<>();
+	
+	public RoomVO() {
+		CopyOnWriteArrayList<ClientInfoVO> empty = new CopyOnWriteArrayList<>();
+		empty.add(new ClientInfoVO());
+		super.put("game", empty);
+		for(int i = 0 ;i < 100; i++) {
+			String roomId = getRoomNumber();
+			
+			roomWaiting.add(roomId);
+			super.put(roomId, new CopyOnWriteArrayList<ClientInfoVO>());
+		}
+		
+		Thread thread = new Thread(()->{
+			while (true) {
+				roomWaiting.parallelStream().forEach(roomId->{
+					if(super.get(roomId).size() >= 8 ) {
+						roomWaiting.remove(roomId);
+						String newRoomId = getRoomNumber();
+						roomWaiting.add(newRoomId);
+						super.put(newRoomId, new CopyOnWriteArrayList<ClientInfoVO>());
+					}
+				});
+				 try{
+	                Thread.sleep(500);
+	            }catch (InterruptedException e){}
+			}
+		});
+		thread.setDaemon(true);
+		thread.start();
+		
+	}
+	
+	public String accessRoom() {
+		return roomWaiting.parallelStream().filter(roomId->{
+			int roomSize = super.get(roomId).size();
+			if(roomSize >= 0 && roomSize <= 8) {
+				return true;
+			}
+			return false;	
+		}).findFirst().orElseGet(String::new);
+	}
 	
 	public boolean settingRoom(String roomId, ClientInfoVO clientInfoVo) {
+		/*
 		if(super.containsKey(roomId) == false) {
 			super.put(roomId, new CopyOnWriteArrayList<>());
-			roomList.add(roomId);
-		}else if(super.get(roomId).size() > 8) {
+		}else */if(super.get(roomId).size() >= 8) {
 			return false;
 		}
 		super.get(roomId).add(clientInfoVo);
@@ -68,6 +113,8 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
 				roomUserList.remove(index.get()-1);
 				if(roomUserCount(client.getClient_room_url()) == 0) {
 					super.remove(client.getClient_room_url());
+					roomWaiting.remove(client.getClient_room_url());
+					roomWaiting.add(getRoomNumber());
 					System.out.println(client.getClient_room_url() + "방 제거 완료 <<<");
 					System.out.println(super.get(client.getClient_room_url()));
 				}
@@ -81,7 +128,7 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
 	}
 	
 	public String getRoomNumber() {
-		return randomCode.createCode(new byte[32]);
+		return "/" + randomCode.createCode(new byte[32]);
 	}
 	
 	public static void main(String a[]) {
@@ -98,19 +145,18 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
 				, entry("access_user", 5)
 		));
 		ClientInfoVO client2 = new ClientInfoVO();
-		CopyOnWriteArrayList<ClientInfoVO> list = new CopyOnWriteArrayList<ClientInfoVO>();
-		list.add(client1);
-		list.add(client2);
-		System.out.println(client1.getClientId());
-		System.out.println(client1);
-		client = list.stream()
-				.filter(item -> false)
-				.findFirst().orElseGet(null);
-		
-		System.out.println(client.getClientId());
-		System.out.println(client);
-		room.put("1", list);
-		System.out.println();
+		CopyOnWriteArrayList<String> list = new CopyOnWriteArrayList<String>();
+		list.add("1");
+		list.add("2");
+		list.add(0,"1");
+		list.add(0,"2");
+		System.out.println(list);
+		list.remove("2");
+		list.remove("2");
+		System.out.println(list);
 
+		//System.out.println(room);
+		//System.out.println(room.roomWaiting);
+		
 	}
 }

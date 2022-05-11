@@ -292,7 +292,7 @@ asdasdasdasdasdasd
 </div>
 <br>
 <div>
-<a href="/chat_multi_access_multi_room">chat_multi_access_multi_room</a>
+<a href="/chat_multi_access_multi_room_gate">chat_multi_access_multi_room</a>
 </div>
 
 <input id="textValue" type=text/>

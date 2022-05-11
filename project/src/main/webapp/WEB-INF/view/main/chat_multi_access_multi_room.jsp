@@ -8,7 +8,7 @@
 <script type="text/javascript" src="/static/js/client/RtcClientManager.js"></script>
 <script type="text/javascript">
 var test2;
-var test = new SocketManager(Client, "${room_number}");
+var test = new SocketManager(Client, "${access_code}");
 
 </script>
 </head>
