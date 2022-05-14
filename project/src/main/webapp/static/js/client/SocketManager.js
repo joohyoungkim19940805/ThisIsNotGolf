@@ -1,16 +1,16 @@
 class SocketManager{
-	constructor(Client, room_number){
-
+	constructor(Client, room_id){
 		
-		
-		this.socket = new WebSocket('ws://localhost:8079/'+room_number);
-		
+		this.socket = new WebSocket('ws://localhost:8079/'+room_id);
 		//신호 서버로 메시지를 보내기 위한 send 메소드
 		//webSocket.send('클라이언트에서 서버로 답장을 보냅니다'); //프론트에서 서버로 데이터를 보낼 때는 send를 사용함.
 		this.send = (message)=> this.socket.send(JSON.stringify(message));
-		this.room_data = [];
+		
+		this.room_data;
 		this.client_info;
+		
 		Client.prototype.send = this.send;
+		
 		this.socketEventAdd(Client);
 	}
 	
@@ -39,9 +39,11 @@ class SocketManager{
 		this.socket.onmessage = msg =>{
 			console.log(msg)
 			let content = JSON.parse(msg.data);
+			
 			if(!this.room_data){
-				//this.room_data = [...Array(content.access_user)];
+				this.room_data = [...Array(content.access_user)];
 			}
+			
 			switch(content.event){
 				case "user" :
 					this.userHandle(content, Client);
@@ -99,17 +101,21 @@ class SocketManager{
 		this.room_data.push(new_user_access_room);
 	}
 	
-	offerHandle({data}, send = this.send){
-		let find_target_room = this.room_data.find(e => e.accessUser == data.offer_req_id &&
+	offerHandle({data}){
+		let find_target_room = this.room_data.find(e => e.access_user == data.offer_req_id &&
 		        										data.target_res_id == this.client_info.client_id &&
 	    												e.channelReady == true &&
 	    												e.peerReady == true);
 
 	    if(find_target_room){
 			find_target_room.access_user = data.offer_req_id;
+			
 			find_target_room.peerConnection.setRemoteDescription(new RTCSessionDescription(data));
+
+			let {client_id} = this.client_info
+			let send = this.send;
 			find_target_room.peerConnection.createAnswer(function(answer) {
-				answer['answer_req_id'] = data.target_res_id;
+				answer['answer_req_id'] = client_id;
 				find_target_room.peerConnection.setLocalDescription(answer);
 			        send({
 			            event : "answer",
@@ -123,17 +129,12 @@ class SocketManager{
 	}
 	
 	answerHandle({data}){
-		let find_target_room;
-		if(this.room_data){
-			find_target_room = this.room_data.find(e => e.accessUser == data.answer_req_id &&
-	    													e.channelReady == true &&
-	    													e.peerReady == true);
-	   		if(find_target_room){
-				find_target_room.access_user = data.answer_req_id;
-	    		find_target_room.peerConnection.setRemoteDescription(new RTCSessionDescription(data));
-			}
-   		}
-
+		let find_target_room = this.room_data.find(e => e.access_user == data.answer_req_id &&
+    													e.channelReady == true &&
+    													e.peerReady == true);
+   		if(find_target_room){
+    		find_target_room.peerConnection.setRemoteDescription(new RTCSessionDescription(data));
+		}
 	}
 	
 	candidateHandle({data, client_info}){
@@ -144,14 +145,14 @@ class SocketManager{
 			}catch(error){
 				console.error("candidateEvent Error");
 				console.error(error);
-				deleteRoomData(check_room_access_user.access_user);
+				deleteRoomHandle(check_room_access_user.access_user);
 			}
 		}
 	}
 	
 	deleteRoomHandle(access_user){
 		console.log("delete user >>>>> " + access_user);
-		let close_room_index= room_data.findIndex(e => e.access_user == access_user);
+		let close_room_index = this.room_data.findIndex(e => e.access_user == access_user);
 		console.log(close_room_index);
 		if(close_room_index != -1){
 			this.room_data.splice(close_room_index, 1)

@@ -10,6 +10,10 @@
 var test2;
 var test = new SocketManager(Client, "${access_code}");
 
+var send = (message) =>{
+	
+	test.room_data.map(e=>e.dataChannel.send( JSON.stringify(message) ));
+}
 </script>
 </head>
 <body>

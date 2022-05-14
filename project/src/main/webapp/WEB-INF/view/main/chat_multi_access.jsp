@@ -23,7 +23,7 @@
 			  ]
 			});
 	
-	const socket = new WebSocket('ws://localhost:8079/game');
+	const socket = new WebSocket('ws://localhost:8079/${access_code}');
 	
 	//신호 서버로 메시지를 보내기 위한 send 메소드
 	//webSocket.send('클라이언트에서 서버로 답장을 보냅니다'); //프론트에서 서버로 데이터를 보낼 때는 send를 사용함.

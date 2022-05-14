@@ -5,7 +5,6 @@
 <meta charset="UTF-8">
 <title>Insert title here</title>
 <script type="text/javascript">
-alert("??");
 	const socket = new WebSocket('ws://localhost:8079/game');
 	
 	//신호 서버로 메시지를 보내기 위한 send 메소드

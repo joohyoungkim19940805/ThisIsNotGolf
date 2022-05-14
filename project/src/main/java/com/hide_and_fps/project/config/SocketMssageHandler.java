@@ -183,7 +183,7 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 				, entry("client_room_url", session.getUri().getPath())
 				, entry("access_time", new Date().getTime())
 				, entry("event","")
-				, entry("access_user", room.roomUserCount(session.getUri().getPath()) + 1)
+				, entry("access_user", room.roomUserCount(session.getUri().getPath()))
 				, entry("sessionDecorator", new ConcurrentWebSocketSessionDecorator (session, sendTimeLimit, sendBufferSizeLimit))
 		));
 	}

@@ -1,6 +1,7 @@
 class Client{
 	constructor(access_user){
-			
+		this.access_user = access_user;
+		
 		const configuration = Object.freeze({
 			'iceServers': [
 				{
@@ -24,8 +25,6 @@ class Client{
 			reliable: true 
 		});
 		
-		this.access_user = access_user;
-		console.log(this.access_user);
 		if(this.access_user === undefined){
 			this.peerConnection.createOffer(offer => {
 				offer['offer_req_id'] = this.client_info.client_id;
@@ -83,6 +82,7 @@ class Client{
 		    this.peerConnection.ondatachannel = (event) => {
 		  		console.log("ondatachannel 이벤트 실행<<<");
 		  		console.log(event);
+		  		this.access_user = this.access_user;
 		        this.dataChannel = event.channel;
 		  	};
 		  	

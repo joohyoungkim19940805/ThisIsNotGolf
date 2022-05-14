@@ -45,7 +45,7 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
 		
 		Thread thread = new Thread(()->{
 			while (true) {
-				roomWaiting.parallelStream().forEach(roomId->{
+				roomWaiting.stream().forEach(roomId->{
 					if(super.get(roomId).size() >= 8 ) {
 						roomWaiting.remove(roomId);
 						String newRoomId = getRoomNumber();
