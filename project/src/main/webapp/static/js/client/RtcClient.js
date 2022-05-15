@@ -63,19 +63,25 @@ class RtcClient{
 		    // when we receive a message from the other peer, printing it on the console
 		    this.dataChannel.onmessage = function(event) {
 		    	console.log(event)
+		    	//전역 변수 함수
 		    	messageViewLoder( JSON.parse( event.data ) );
+		    	//
 		    };
 		    
 		    this.dataChannel.onclose = function(event) {
 		        console.log("data channel is closed");
 		        console.log(event);
+		        //전역 변수 함수
      			deleteUserRemoveView(this.access_user);
+     			//
 		    };
 		  	
 		    this.dataChannel.onopen = (event) => {
 		    	console.log('dataChannel onopen event<<<');
 		    	console.log(event);
-		    	accessUserAddView(this.access_user)
+		    	//전역 변수 함수
+		    	accessUserAddView(this.access_user);
+		    	//
 		    }
 		    
 		    this.peerConnection.ondatachannel = (event) => {

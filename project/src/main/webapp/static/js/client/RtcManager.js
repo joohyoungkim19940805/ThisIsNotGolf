@@ -46,7 +46,9 @@ class RtcManager{
 			
 			switch(content.event){
 				case "user" :
+					//then 전역변수 콜백
 					this.userHandle(content, Client).then(client_id => accessUserAddView(client_id));
+					//
 					break;
 					
 				case "user_list" :
@@ -70,7 +72,9 @@ class RtcManager{
 					break;
 					
 				case "delete" : 
+					//then 전역변수 콜백
 					this.deleteRoomHandle(content.client_info.client_id).then(client_id=>deleteUserRemoveView(client_id));
+					//
 					break;
 					
 				case "serverMessage" :
