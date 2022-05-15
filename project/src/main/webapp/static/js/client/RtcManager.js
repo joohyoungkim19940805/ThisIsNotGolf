@@ -1,4 +1,4 @@
-class SocketManager{
+class RtcManager{
 	constructor(Client, room_id){
 		
 		this.socket = new WebSocket('ws://localhost:8079/'+room_id);
@@ -10,6 +10,7 @@ class SocketManager{
 		this.client_info;
 		
 		Client.prototype.send = this.send;
+		Client.prototype.client_info = '';
 		
 		this.socketEventAdd(Client);
 	}
@@ -19,8 +20,7 @@ class SocketManager{
 		window.addEventListener("beforeunload",()=>{
 			socket.close();
 			if(this.room_data){
-				this.room_data.filter(e=>e.accessUser != '')
-						.map(e=>e.dataChannel.close());
+				this.room_data.forEach(e=>e.accessUser != '' ? e.dataChannel.close() : undefined);
 			}
 		});
 				
@@ -46,7 +46,7 @@ class SocketManager{
 			
 			switch(content.event){
 				case "user" :
-					this.userHandle(content, Client);
+					this.userHandle(content, Client).then(client_id => accessUserAddView(client_id));
 					break;
 					
 				case "user_list" :
@@ -54,7 +54,7 @@ class SocketManager{
 					break;
 					
 				case "new_access" :
-					this.newAccessHandle(content, Client);
+					this.newAccessHandle(content, Client).then();
 					break;
 					
 				case "offer" :
@@ -70,7 +70,7 @@ class SocketManager{
 					break;
 					
 				case "delete" : 
-					this.deleteRoomHandle(content.client_info.client_id);
+					this.deleteRoomHandle(content.client_info.client_id).then(client_id=>deleteUserRemoveView(client_id));
 					break;
 					
 				case "serverMessage" :
@@ -84,8 +84,14 @@ class SocketManager{
 	}
 	
 	userHandle({client_info}, Client){
-		this.client_info = Object.freeze(client_info);
-		Client.prototype.client_info = this.client_info;
+		return new Promise(resolve =>{
+			
+			this.client_info = Object.freeze(client_info);
+			Client.prototype.client_info = this.client_info;
+			
+			return setTimeout(resolve(client_info.client_id),0);
+			
+		});
 	}
 	
 	userListHandle({data}, Client){
@@ -97,8 +103,13 @@ class SocketManager{
 	}
 	
 	newAccessHandle({client_info}, Client){
-		let new_user_access_room = new Client(client_info.client_id);
-		this.room_data.push(new_user_access_room);
+		return new Promise(resolve =>{
+			
+			let new_user_access_room = new Client(client_info.client_id);
+			this.room_data.push(new_user_access_room);
+			
+			return setTimeout(resolve(client_info.client_id),0);
+		});
 	}
 	
 	offerHandle({data}){
@@ -151,14 +162,45 @@ class SocketManager{
 	}
 	
 	deleteRoomHandle(access_user){
-		console.log("delete user >>>>> " + access_user);
-		let close_room_index = this.room_data.findIndex(e => e.access_user == access_user);
-		console.log(close_room_index);
-		if(close_room_index != -1){
-			this.room_data.splice(close_room_index, 1)
-		}
+		return new Promise(resolve => {
+			
+			let close_room_index = this.room_data.findIndex(e => e.access_user == access_user);
+			let closeTargetUser = this.room_data[close_room_index].access_user;
+			if(close_room_index != -1){
+				this.room_data.splice(close_room_index, 1)
+			}
+			
+			return setTimeout(resolve(closeTargetUser),0);
+		});
 	}
 	socketClose(){
 		this.socket.close();
+	}
+	
+	sendToClient(message){
+		return new Promise(resolve =>{
+			if(message){
+				
+				let sendObject = {
+					'client_id' : this.client_info.client_id,
+					'message' : message
+				}
+				let result = this.room_data.reduce( (t,e) => {
+					if(e.peerReady == false && e.channelReady == false){
+						e.dataChannel.send( JSON.stringify(sendObject) );
+						t.push(e.aacess_user);
+					}
+					return t;
+				},[]);
+				if(result.length == 0){
+					throw Error('다른 클라이언트에 메시지 전송을 실패하였습니다.')
+				}
+				
+				return setTimeout(resolve(sendObject), 0);
+				
+			}else{
+				throw Error('다른 클라이언트에 전송할 데이터가 없습니다.');
+			}
+		});	
 	}
 }

@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -43,7 +45,9 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
 			super.put(roomId, new CopyOnWriteArrayList<ClientInfoVO>());
 		}
 		
-		Thread thread = new Thread(()->{
+		ExecutorService  thread = Executors.newSingleThreadExecutor();
+		/*
+		thread.execute(()->{
 			while (true) {
 				roomWaiting.stream().forEach(roomId->{
 					if(super.get(roomId).size() >= 8 ) {
@@ -51,15 +55,29 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
 						String newRoomId = getRoomNumber();
 						roomWaiting.add(newRoomId);
 						super.put(newRoomId, new CopyOnWriteArrayList<ClientInfoVO>());
+						
 					}
 				});
 				 try{
 	                Thread.sleep(500);
 	            }catch (InterruptedException e){}
 			}
-		});
-		thread.setDaemon(true);
-		thread.start();
+		});*/
+		thread.submit(new Thread(()->{
+			while (true) {
+				roomWaiting.stream().forEach(roomId->{
+					if(super.get(roomId).size() >= 8 ) {
+						roomWaiting.remove(roomId);
+						String newRoomId = getRoomNumber();
+						roomWaiting.add(newRoomId);
+						super.put(newRoomId, new CopyOnWriteArrayList<ClientInfoVO>());		
+					}
+				});
+				 try{
+	                Thread.sleep(500);
+	            }catch (InterruptedException e){}
+			}
+		}) );
 		
 	}
 	
@@ -74,10 +92,10 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
 	}
 	
 	public boolean settingRoom(String roomId, ClientInfoVO clientInfoVo) {
-		/*
+		
 		if(super.containsKey(roomId) == false) {
 			super.put(roomId, new CopyOnWriteArrayList<>());
-		}else */if(super.get(roomId).size() >= 8) {
+		}else if(super.get(roomId).size() >= 8) {
 			return false;
 		}
 		super.get(roomId).add(clientInfoVo);

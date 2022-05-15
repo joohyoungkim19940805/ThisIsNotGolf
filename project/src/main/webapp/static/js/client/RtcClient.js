@@ -1,4 +1,4 @@
-class Client{
+class RtcClient{
 	constructor(access_user){
 		this.access_user = access_user;
 		
@@ -63,20 +63,19 @@ class Client{
 		    // when we receive a message from the other peer, printing it on the console
 		    this.dataChannel.onmessage = function(event) {
 		    	console.log(event)
-		    	//viewMessage( JSON.parse( event.data ) );
+		    	messageViewLoder( JSON.parse( event.data ) );
 		    };
 		    
 		    this.dataChannel.onclose = function(event) {
 		        console.log("data channel is closed");
 		        console.log(event);
-     			//deleteUserRemoveView(this.access_user);
-		       	//deleteRoomData(this.access_user)
+     			deleteUserRemoveView(this.access_user);
 		    };
 		  	
 		    this.dataChannel.onopen = (event) => {
 		    	console.log('dataChannel onopen event<<<');
 		    	console.log(event);
-		    	//accessUserAddView(this.access_user)
+		    	accessUserAddView(this.access_user)
 		    }
 		    
 		    this.peerConnection.ondatachannel = (event) => {

@@ -324,6 +324,9 @@
 		}
 	}
 
+	
+	
+	
 	var textArr;
 	var chatContentArr;
 	var chatContentTemplate = (()=>{
@@ -348,8 +351,14 @@
 				chat_id : client_info.client_id,
 				chat_message : textArr.value
 			}
-			let result = roomData.filter(e=>e.peerReady == false && e.channelReady == false)
-								.map(e=>e.dataChannel.send( JSON.stringify(message) ));
+			let result = this.roomData.filter(e=>{
+				if(e.peerReady == false && e.channelReady == false){
+					e.dataChannel.send( JSON.stringify(message) );
+					return e.accessUser;
+				}
+			});
+			console.log('result <<<');
+			console.log(result);
 			if(result.length == 0){
 				alert('다른 클라이언트에 메시지 전송을 실패하였습니다.')
 			}else{
