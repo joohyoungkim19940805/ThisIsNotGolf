@@ -50,7 +50,7 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
 		thread.execute(()->{
 			while (true) {
 				roomWaiting.stream().forEach(roomId->{
-					if(super.get(roomId).size() >= 8 ) {
+					if(super.containsKey(roomId) && super.get(roomId).size() >= 8 ) {
 						roomWaiting.remove(roomId);
 						String newRoomId = getRoomNumber();
 						roomWaiting.add(newRoomId);
@@ -63,22 +63,42 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
 	            }catch (InterruptedException e){}
 			}
 		});*/
+		
 		thread.submit(new Thread(()->{
 			while (true) {
 				roomWaiting.stream().forEach(roomId->{
-					if(super.get(roomId).size() >= 8 ) {
+					if(super.containsKey(roomId) && super.get(roomId).size() >= 8 ) {
 						roomWaiting.remove(roomId);
 						String newRoomId = getRoomNumber();
 						roomWaiting.add(newRoomId);
 						super.put(newRoomId, new CopyOnWriteArrayList<ClientInfoVO>());		
 					}
 				});
-				 try{
+				try{
 	                Thread.sleep(500);
 	            }catch (InterruptedException e){}
 			}
 		}) );
-		
+		/*
+		Thread thread = new Thread(()->{
+			while (true) {
+				System.out.println(super.size());
+				roomWaiting.stream().forEach(roomId->{
+					if(super.containsKey(roomId) && super.get(roomId).size() >= 8 ) {
+						roomWaiting.remove(roomId);
+						String newRoomId = getRoomNumber();
+						roomWaiting.add(newRoomId);
+						super.put(newRoomId, new CopyOnWriteArrayList<ClientInfoVO>());
+					}
+				});
+				 try{
+	                Thread.sleep(500);
+	            }catch (InterruptedException e){}
+			}
+		});
+		thread.setDaemon(true);
+		thread.start();
+		*/
 	}
 	
 	public String accessRoom() {
@@ -93,9 +113,9 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
 	
 	public boolean settingRoom(String roomId, ClientInfoVO clientInfoVo) {
 		
-		if(super.containsKey(roomId) == false) {
+		/*if(super.containsKey(roomId) == false) {
 			super.put(roomId, new CopyOnWriteArrayList<>());
-		}else if(super.get(roomId).size() >= 8) {
+		}else*/ if(super.get(roomId).size() >= 8) {
 			return false;
 		}
 		super.get(roomId).add(clientInfoVo);

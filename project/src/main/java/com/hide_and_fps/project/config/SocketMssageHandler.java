@@ -74,7 +74,16 @@ public class SocketMssageHandler extends TextWebSocketHandler {
     		}
     	}else {
         	//접속자 데이터 생성
-        	room.settingRoom(session.getUri().getPath(), clientInfoVo);
+        	if(room.settingRoom(session.getUri().getPath(), clientInfoVo) == false) {
+        		String roomIdWaiting = room.accessRoom();
+        		if(roomIdWaiting.isEmpty() == false) {
+    	    		String roomInfo = """
+    	    				{
+    	    				"data":{"access":"%s"},"event":"access_room"
+    	    				}""".formatted(roomIdWaiting);
+    	    		sendMessage(session, new TextMessage(roomInfo));
+        		}
+        	}
         	
 	    	//새로운 접속자에게 자기자신의 클라이언트 정보 넘겨주기
 			sendMessage(clientInfoVo.getSessionDecorator(), new TextMessage(clientInfoVo.changeEventType("user")));

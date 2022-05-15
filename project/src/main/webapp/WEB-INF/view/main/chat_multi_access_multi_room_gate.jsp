@@ -34,7 +34,6 @@
 	    var content = JSON.parse(msg.data);
 	    var data = content.data;
 		console.log(data);
-		alert(data.size);
 	    switch (content.event) {
 	    	case "access_room":
 				top.location.href = '/chat_multi_access_multi_room?access='+data.access.substring(1)
