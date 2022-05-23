@@ -44,6 +44,7 @@ public class MainController {
     
 	@GetMapping("/")
     public String hello(HttpSession session) {
+		System.out.println("test<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 		session.setAttribute("testId", "testValue");
     	HashMap<String, Object> model = new HashMap<String, Object>();
 		/*
@@ -62,7 +63,7 @@ public class MainController {
 		//System.out.println(syAdminList);
 		model.put("syAdminList", syAdminList);
 		*/
-		return "/main/index";
+		return "content/home";
     }
     
     
