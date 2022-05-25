@@ -66,8 +66,6 @@ public class MainController {
 		return "content/home";
     }
     
-    
-    
     @GetMapping(value="/PrevTargetPage")
     public String page_get(HttpServletRequest request, HttpSession session) {
     	System.out.println("다른처리");
