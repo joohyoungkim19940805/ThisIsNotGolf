@@ -32,7 +32,7 @@ public class ApiController {
 	@PostMapping(value = "testApi", produces = MediaType.APPLICATION_JSON_VALUE)
 	public String testApiPost(@RequestBody Map<String, Object> attributes, HttpServletRequest request) {
 		//System.out.println(attributes);
-		
+		/*
 		ArrayList<Map<String,Object>> list = ((ArrayList<Map<String,Object>>)attributes.get("attributes"));
 		list.parallelStream().forEach(userData->{
 			if( ((String)userData.get("등급 상태 구분값")).equals("하락") ) {
@@ -48,7 +48,7 @@ public class ApiController {
 				statusKeepCount++;
 			}
 		});
-		
+		*/
 		System.out.println("totalCount : " + totalCount);
 		totalCount++;
 		
