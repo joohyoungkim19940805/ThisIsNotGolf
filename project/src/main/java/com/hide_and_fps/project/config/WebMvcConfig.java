@@ -36,7 +36,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
 	@Autowired
 	Environment env;
 	
-	/*
+	
 	@Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
 		System.out.println(System.getProperty("user.home") + env.getProperty("system.file.uploadPath"));
@@ -49,7 +49,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .resourceChain(true)
                 .addResolver(new PathResourceResolver());
     }
-*/
+
 	
     @Bean
     public TestIntercepter programAccessHandler() {

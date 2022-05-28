@@ -13,11 +13,13 @@ import org.apache.ibatis.javassist.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.hide_and_fps.project.room.vo.RoomVO;
 import com.hide_and_fps.project.user.vo.ClientInfoVO;
@@ -34,14 +36,15 @@ public class SocketMssageHandler extends TextWebSocketHandler {
     private int sendTimeLimit = (int)TimeUnit.SECONDS.toMillis(10);
     
     private int sendBufferSizeLimit = 512 * 1024;
+
+    private String roomIdKey = "access";
     
-					    
     //발송한 사람의 session을 제외한 receptionSessionsList(수신 유저 리스트)에 message를 전달한다.
     @Override
     public void handleTextMessage(WebSocketSession sendSession, TextMessage message) throws InterruptedException, IOException {
     	//sessionIdList.parallelStream().forEach(sessionId-> {
     	if(sendSession.isOpen()) {
-	    	room.get( sendSession.getUri().getPath() ).parallelStream().forEach(client ->{
+	    	room.get( getQueryMap( sendSession ).get(0) ).parallelStream().forEach(client ->{
 	    		//logger.debug(message.getPayload());
 	            if (sendSession.getId().equals(client.getClientId()) == false) {
 	                	sendMessage(client.getSessionDecorator(), message);
@@ -62,8 +65,11 @@ public class SocketMssageHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
 
-    	ClientInfoVO clientInfoVo = setClientInfoTemplate(session);
-    	if(session.getUri().getPath().equals("/game")) {
+	    //System.out.println( parameters.get("access") );
+    	
+	    ClientInfoVO clientInfoVo = setClientInfoTemplate(session);
+    	if(session.getUri().getPath().equals("/room/game")) {
+    		
     		String roomIdWaiting = room.accessRoom();
     		if(roomIdWaiting.isEmpty() == false) {
 	    		String roomInfo = """
@@ -72,9 +78,9 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 	    				}""".formatted(roomIdWaiting);
 	    		sendMessage(session, new TextMessage(roomInfo));
     		}
-    	}else {
+    	}else if(session.getUri().getPath().equals("/room/roomId")) {
         	//접속자 데이터 생성
-        	if(room.settingRoom(session.getUri().getPath(), clientInfoVo) == false) {
+        	if(room.settingRoom(getQueryMap( session ).get(0), clientInfoVo) == false) {
         		String roomIdWaiting = room.accessRoom();
         		if(roomIdWaiting.isEmpty() == false) {
     	    		String roomInfo = """
@@ -90,7 +96,7 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 			
 			// 기존에 접속 중이던 유저들에게 새로운 유저 정보 넘겨주기
 			String newUserClientInfo = clientInfoVo.changeEventType("new_access");
-			room.get(session.getUri().getPath()).parallelStream().forEach(client -> {
+			room.get(getQueryMap( session ).get(0)).parallelStream().forEach(client -> {
 				if(session.getId().equals(client.getClientId()) == false) {
 					sendMessage(client.getSessionDecorator(), new TextMessage( newUserClientInfo ));
 				}
@@ -131,7 +137,7 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 	}
 	
 	private void sendOutUserInfo(WebSocketSession session) {
-    	if(session.getUri().getPath().equals("/game")) {
+    	if(session.getUri().getPath().equals("/room/game")) {
     		System.out.println(session.getUri().getPath());
     	}else {
 			try {
@@ -139,7 +145,7 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 					if(client != null) {
 						String deleteUserInfo = client.changeEventType("delete");
 								//setClientInfoTemplate(session, "delete").getClientInfoToByte();
-						List<ClientInfoVO> clientList = room.get(session.getUri().getPath());
+						List<ClientInfoVO> clientList = room.get(getQueryMap( session ).get(0));
 						Optional.ofNullable(clientList)
 							    .orElseGet(Collections::emptyList)
 							    .stream()
@@ -189,13 +195,19 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 		
 		return new ClientInfoVO(Map.ofEntries(
 				entry("client_id",session.getId())
-				, entry("client_room_url", session.getUri().getPath())
+				, entry("client_room_url", getQueryMap( session ).get(0))
 				, entry("access_time", new Date().getTime())
 				, entry("event","")
-				, entry("access_user", room.roomUserCount(session.getUri().getPath()))
+				, entry("access_user", room.roomUserCount( getQueryMap( session ).get(0) ))
 				, entry("sessionDecorator", new ConcurrentWebSocketSessionDecorator (session, sendTimeLimit, sendBufferSizeLimit))
 		));
 	}
+	
+	private List<String> getQueryMap(WebSocketSession targetSession) {
+		MultiValueMap<String, String> parameters = UriComponentsBuilder.fromUri(targetSession.getUri()).build().getQueryParams();
+	    return parameters.get(roomIdKey);
+	}
+	
 	/*
 	public static void main(String args[]) {
 		final List<Integer> list = Arrays.asList(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40);

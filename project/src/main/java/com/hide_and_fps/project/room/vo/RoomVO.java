@@ -14,8 +14,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.apache.ibatis.javassist.NotFoundException;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.hide_and_fps.project.user.vo.ClientInfoVO;
 import com.hide_and_fps.business_logic.util.CreateRandomCodeUtil;
@@ -112,10 +114,11 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
 	}
 	
 	public boolean settingRoom(String roomId, ClientInfoVO clientInfoVo) {
-		
-		/*if(super.containsKey(roomId) == false) {
+		System.out.println(roomId);
+		System.out.println(super.entrySet());
+		if(super.containsKey(roomId) == false) {
 			super.put(roomId, new CopyOnWriteArrayList<>());
-		}else*/ if(super.get(roomId).size() >= 8) {
+		}else if(super.get(roomId).size() >= 8) {
 			return false;
 		}
 		super.get(roomId).add(clientInfoVo);
@@ -128,13 +131,15 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
 		if(roomUserList != null){
 			return roomUserList.size();
 		}else {
-			return -1;
+			return 0;
 		}
 	}
 	
 	public ClientInfoVO outRoomRemoveUser(WebSocketSession session) throws NotFoundException {
 		ClientInfoVO client = null;
-		List<ClientInfoVO> roomUserList = super.get(session.getUri().getPath());
+		MultiValueMap<String, String> parameters = UriComponentsBuilder.fromUri(session.getUri()).build().getQueryParams();
+		String roomIdKey = parameters.get("access").get(0);
+		List<ClientInfoVO> roomUserList = super.get( roomIdKey );
 		AtomicInteger index = new AtomicInteger();
 		
 		if(roomUserList != null) {
@@ -166,7 +171,7 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
 	}
 	
 	public String getRoomNumber() {
-		return "/" + randomCode.createCode(new byte[32]);
+		return randomCode.createCode(new byte[32]);
 	}
 	
 	public static void main(String a[]) {

@@ -151,14 +151,14 @@ public class MainController {
     public String chat_multi_access_multi_room_gate(HttpSession session, Model model) {
     	model.addAttribute("room_number", createRandomCodeUtil.createCode());
     	
-    	return "/main/chat_multi_access_multi_room_gate";
+    	return "content/chat_multi_access_multi_room_gate";
     }
     
     @RequestMapping(value="/chat_multi_access_multi_room", method = {RequestMethod.POST, RequestMethod.GET})
     public String chat_multi_access_multi_room(HttpSession session, Model model, @RequestParam(value="access") String access_code) {
     	model.addAttribute("access_code", access_code);
     	
-    	return "/main/chat_multi_access_multi_room";
+    	return "content/chat_room";
     }
     
 }
