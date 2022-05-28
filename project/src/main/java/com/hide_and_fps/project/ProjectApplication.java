@@ -15,11 +15,11 @@ import org.springframework.context.annotation.ComponentScan;
 								"com.hide_and_fps.project.*"
 								, "com.hide_and_fps.business_logic.*"
 							  })
-public class projectApplication {
+public class ProjectApplication {
 
 	public static void main(String[] args) {
 		System.setProperty("spring.profiles.active", "local");
-		SpringApplication.run(projectApplication.class, args);
+		SpringApplication.run(ProjectApplication.class, args);
 	}
 
 }
