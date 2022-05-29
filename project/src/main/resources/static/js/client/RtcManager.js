@@ -2,6 +2,7 @@
  * RtcClient들을 핸들링하는 클래스
  */
 class RtcManager{
+	
 	constructor(Client, room_id){
 		
 		this.socket = new WebSocket('ws://localhost:8079/room/roomId?access='+room_id);
@@ -18,8 +19,17 @@ class RtcManager{
 		this.socketEventAdd(Client);
 	}
 	
+		
+	/**
+	 * 각 이벤트들의 구현체를 관리하는 함수
+	 */
 	socketEventAdd(Client){
-					
+		
+			
+		/**
+		 * 페이지 이동 시 직접 소켓을 클로즈하고 rtc client에 연결된 데이터 채널을 직접 끊는다.
+		 * 간헐적으로 서버에서 소켓이 close 되지 않거나 간헐적으로 데이터 채널이 닫히지 않는 현상 대응
+		 */			
 		window.addEventListener("beforeunload",()=>{
 			socket.close();
 			if(this.room_data){
@@ -27,18 +37,26 @@ class RtcManager{
 			}
 		});
 				
-		//서버쪽이랑 연결된 순간 onopen 이벤트가 실행된다.
+		/**
+		 * 서버쪽이랑 연결된 순간 onopen 이벤트가 실행된다.
+		 */
 		this.socket.onopen = e => {
 			console.log(e);
 		    console.log("웹소컷 서버와 연결 완료");
 		    
 		};
 		
+		/**
+		 * 웹 소켓과 연결이 끊겼을 경우
+		 */
 		this.socket.onclose = e => {
 			console.log(e);
 			console.log('웹소켓 닫는다.');
 		};
 		
+		/**
+		 * 소켓으로부터 메시지를 전달받았을 경우 각 메시지 이벤트마다 분기 처리
+		 */
 		this.socket.onmessage = msg =>{
 			console.log(msg)
 			let content = JSON.parse(msg.data);
@@ -108,6 +126,11 @@ class RtcManager{
 		});
 	}
 	
+	/**
+	 * web soket 서버로부터 현재 room에 참가 중인 유저들을 각 RtcClient에 등록한다.
+	 * @param {JSON} data web soket 서버로부터 전달받은 현재 room에 참가 중인 유저들의 클라이언트 정보
+	 * @param {class} Client RtcClient 클래스
+	 */
 	userListHandle({data}, Client){
 		data.map((e,i) => {
 			let create_chat_room = new Client();
@@ -116,6 +139,12 @@ class RtcManager{
 		});
 	}
 	
+	/**
+	 * 현재 참가 중인 room에 신규 유저가 접속할 시 새로운 RtcClient에 신규 유저의 클라이언트 정보를 입력한다.
+	 * @param {JSON} client_info 현재 room에 참가 요청을 한 새로운 유저의 클라이언트 정보 
+	 * @param {class} Client RtcClient 클래스
+	 * @returns {Promise} 비동기 함수로서 promise를 반환하도록 한다.
+	 */
 	newAccessHandle({client_info}, Client){
 		return new Promise(resolve =>{
 			
@@ -187,6 +216,7 @@ class RtcManager{
 			return setTimeout(resolve(closeTargetUser),0);
 		});
 	}
+	
 	socketClose(){
 		this.socket.close();
 	}
