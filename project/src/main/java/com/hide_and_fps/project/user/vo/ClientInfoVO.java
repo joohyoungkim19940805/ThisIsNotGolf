@@ -27,13 +27,14 @@ public class ClientInfoVO {
 	 * user(자기 자신의 정보) -> user_list(자기 자신에게 현재 접속중인 room 유저들 리스트 전달) -> new_access(Others : 방에 있는 타인들에게 자신의 정보 전달) 
 	 */
 	private String event;
+	
 	private int access_user;
 	
 	private ConcurrentWebSocketSessionDecorator sessionDecorator;
 	
 	public ClientInfoVO() {}
 	
-	public ClientInfoVO(Map map){
+	public ClientInfoVO(Map<String, Object> map){
 		this.client_id = (String) map.get("client_id");
 		this.client_room_url = (String) map.get("client_room_url");
 		this.access_time = (long) map.get("access_time");

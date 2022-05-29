@@ -1,3 +1,6 @@
+/**
+ * RtcClient들을 핸들링하는 클래스
+ */
 class RtcManager{
 	constructor(Client, room_id){
 		
@@ -88,6 +91,12 @@ class RtcManager{
 		}	
 	}
 	
+	/**
+	 * web soket 서버로부터 발급받은 자기 자신의 클라이언트 정보를 RtcClient의 prototype과 manager에 저장한다. (클라이언트가 자기 자신을 기억하도록한다.)
+	 * @param {JSON} client_info web soket 서버로부터 발급받은 자기 자신의 클라이언트 정보
+	 * @param {class} Client RtcClient 클래스
+	 * @returns {Promise} 비동기 함수로서 promise를 반환하도록 한다.
+	 */
 	userHandle({client_info}, Client){
 		return new Promise(resolve =>{
 			
