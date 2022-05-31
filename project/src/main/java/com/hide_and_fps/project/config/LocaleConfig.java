@@ -11,7 +11,7 @@ import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.springframework.web.servlet.i18n.CookieLocaleResolver;
 import org.springframework.web.servlet.i18n.LocaleChangeInterceptor;
-
+/*
 @Configuration
 public class LocaleConfig implements WebMvcConfigurer {
 
@@ -52,4 +52,5 @@ public class LocaleConfig implements WebMvcConfigurer {
         return new MessageSourceAccessor(this.messageSource());
     }
 }
+*/
 

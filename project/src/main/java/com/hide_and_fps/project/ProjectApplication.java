@@ -18,7 +18,7 @@ import org.springframework.context.annotation.ComponentScan;
 public class ProjectApplication {
 
 	public static void main(String[] args) {
-		System.setProperty("spring.profiles.active", "local");
+		//System.setProperty("spring.profiles.active", "local");
 		SpringApplication.run(ProjectApplication.class, args);
 	}
 

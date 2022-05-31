@@ -22,6 +22,7 @@ import com.hide_and_fps.project.interceptor.TestIntercepter;
 //import com.navercorp.lucy.security.xss.servletfilter.XssEscapeServletFilter;
 //import com.middleware.fs.interceptor.TestIntercepter;
 
+/*
 @PropertySources({
 	//로컬 환경에서 사용될 파일 경로
 	@PropertySource(value = "classpath:/appConfig/app-config-local.properties", ignoreResourceNotFound = true),
@@ -29,6 +30,7 @@ import com.hide_and_fps.project.interceptor.TestIntercepter;
 	//서버 환경에서 사용될 파일 경로
 	@PropertySource(value = "classpath:/appConfig/app-config-${spring.profiles.active}.properties", ignoreResourceNotFound = true)
 })
+*/
 
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
