@@ -9,12 +9,13 @@ import org.springframework.context.annotation.ComponentScan;
  */
 
 @ServletComponentScan
-@SpringBootApplication 
+
 //매핑할 패키지 경로를 지정한다. 해당 클래스 외의 패키지 경로를 매핑하고 싶을 때(Autowired bean이 안잡힐 때)
 @ComponentScan(basePackages = {
 								"com.hide_and_fps.project.*"
 								, "com.hide_and_fps.business_logic.*"
 							  })
+@SpringBootApplication
 public class ProjectApplication {
 
 	public static void main(String[] args) {

@@ -6,7 +6,7 @@
 
 	<groupId>com.hide-and-fps</groupId>
 	<artifactId>project</artifactId>
-	<version>0.2-SNAPSHOT</version>
+	<version>0.3-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>hide-and-fps</name>
 
@@ -116,7 +116,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<version>2.6.6</version>
 				<configuration>
-					<mainClass>com.hide_and_fps.project.projectApplication</mainClass>
+					<mainClass>com.hide_and_fps.project.ProjectApplication</mainClass>
 					<excludes>
 						<exclude>
 							<groupId>org.projectlombok</groupId>
