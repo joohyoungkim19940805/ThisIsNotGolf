@@ -101,7 +101,7 @@ class RtcManager{
 				case "serverMessage" :
 					break;
 				case "access_room" :
-					top.location.href = '/chat_multi_access_multi_room?access='+data.access.substring(1)
+					top.location.href = '/chat_multi_access_multi_room?access='+data.access
 				default :
 					break;
 					

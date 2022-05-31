@@ -133,8 +133,6 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
      * @version 0.1
      */
 	public boolean accessRoom(String roomId, ClientInfoVO clientInfoVo) {
-		//System.out.println(roomId);
-		//System.out.println(super.entrySet());
 		/*if(super.containsKey(roomId) == false) {
 			super.put(roomId, new CopyOnWriteArrayList<>());
 		}else*/ 
@@ -225,9 +223,9 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
 	public String getRoomNumber() {
 		return randomCode.createCode(new byte[32]);
 	}
-	
+	/*	
 	public static void main(String a[]) {
-		/*
+
 		RoomVO room = new RoomVO();
 		ClientInfoVO client = null;
 		int sendTimeLimit = (int)TimeUnit.SECONDS.toMillis(10);
@@ -250,9 +248,10 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
 		list.remove("2");
 		list.remove("2");
 		System.out.println(list);
-		 */
+
 		//System.out.println(room);
 		//System.out.println(room.roomWaiting);
 		
-	}
+	}		 
+	*/
 }
