@@ -42,6 +42,15 @@ public class MainController {
 	@Autowired
 	private CreateRandomCodeUtil createRandomCodeUtil;
     
+	@RequestMapping("/testLoadBal")
+	public String testLoadBal(@RequestParam(value="code") String code) {
+		if(code.equals("joohyoungkim19940805")) {
+			return "index";
+		}else {
+			return "";
+		}
+	}
+	
 	@GetMapping("/")
     public String hello(HttpSession session) {
 		System.out.println("test<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
