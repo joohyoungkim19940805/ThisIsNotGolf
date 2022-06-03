@@ -8,10 +8,10 @@
     	<title>testProject</title>
 		
         <!--/* css */-->
-        <link th:href="@{/css/common.css}" rel="stylesheet" />
+        <link th:href="@{css/common.css}" rel="stylesheet" />
     </th:block>
     <body>
-        <th:block layout:fragment="header" th:include="@{/fragments/header}"></th:block>
+        <th:block layout:fragment="header" th:include="@{fragments/header}"></th:block>
 		
         <main layout:fragment="content" class="content">
             <script type="text/javascript">
@@ -31,7 +31,7 @@
 			</div>
 			
 			
-			<img id="file_upload" src="/static/images/btn_file_add.png"/>
+			<img id="file_upload" src="/images/btn_file_add.png"/>
 			
 			<input	type="file" id="fileInput" name="uploadFile"
 				accept=".jpg, .png, .pdf, .jpeg" multiple="multiple" title="파일첨부" 
@@ -333,6 +333,6 @@
 			</script>
         </main>
         
-        <th:block layout:fragment="footer" th:include="@{/fragments/footer}"></th:block>	
+        <th:block layout:fragment="footer" th:include="@{fragments/footer}"></th:block>	
     </body>
 </html>

@@ -8,10 +8,10 @@
     	<title>testProject</title>
 		
         <!--/* css */-->
-        <link th:href="@{/css/common.css}" rel="stylesheet" />
+        <link th:href="@{css/common.css}" rel="stylesheet" />
         
-        <script type="text/javascript" th:src="@{/js/client/RtcManager.js}"></script>
-        <script type="text/javascript" th:src="@{/js/client/RtcClient.js}"></script>
+        <script type="text/javascript" th:src="@{js/client/RtcManager.js}"></script>
+        <script type="text/javascript" th:src="@{js/client/RtcClient.js}"></script>
 		<script type="text/javascript" th:inline="javascript">
 			console.log(/*[[${access_code}]]*/);
 			var rtcManager = new RtcManager(RtcClient, /*[[${access_code}]]*/);
@@ -90,7 +90,7 @@
 		</style>
     </th:block>
     <body>
-        <th:block layout:fragment="header" th:include="@{/fragments/header}"></th:block>
+        <th:block layout:fragment="header" th:include="@{fragments/header}"></th:block>
 		
         <main layout:fragment="content" class="content">
             <div class="container">
@@ -119,6 +119,6 @@
 			</div>
         </main>
         
-        <th:block layout:fragment="footer" th:include="@{/fragments/footer}"></th:block>	
+        <th:block layout:fragment="footer" th:include="@{fragments/footer}"></th:block>	
     </body>
 </html>
