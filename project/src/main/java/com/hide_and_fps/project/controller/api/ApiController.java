@@ -49,10 +49,10 @@ public class ApiController {
 			}
 		});
 		*/
-		System.out.println("totalCount : " + totalCount);
+		System.out.println("totalCount : " + attributes);
 		totalCount++;
 		
-		return null;
+		return "{\"test\":\"test1\"}";
 	}
 	/*
 	@GetMapping(value = "testApi", produces = MediaType.APPLICATION_JSON_VALUE)
