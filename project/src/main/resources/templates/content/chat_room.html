@@ -3,13 +3,7 @@
       xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/default_layout}">
-    
-    <th:block layout:fragment="head">
-    	<title>testProject</title>
-		
-        <!--/* css */-->
-        <link th:href="@{css/common.css}" rel="stylesheet" />
-        
+    	<th:block layout:fragment="content">
         <script type="text/javascript" th:src="@{js/client/RtcManager.js}"></script>
         <script type="text/javascript" th:src="@{js/client/RtcClient.js}"></script>
 		<script type="text/javascript" th:inline="javascript">
@@ -88,11 +82,7 @@
 		    	content: " : ";
 			}
 		</style>
-    </th:block>
-    <body>
-        <th:block layout:fragment="header" th:include="@{fragments/header}"></th:block>
-		
-        <main layout:fragment="content" class="content">
+
             <div class="container">
 				<div class="chat_wrapper" style="display: flex;writing-mode: vertical-lr;gap: 1rem;">
 					<div class="chat_view_wrapper" style="height:500px">
@@ -117,8 +107,5 @@
 					</div>
 				</div>
 			</div>
-        </main>
-        
-        <th:block layout:fragment="footer" th:include="@{fragments/footer}"></th:block>	
-    </body>
+		</th:block>
 </html>

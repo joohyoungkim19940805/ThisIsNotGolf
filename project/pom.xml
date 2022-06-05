@@ -25,31 +25,18 @@
 	</properties>
 
 	<dependencies>
-		
-		<dependency>
-			<groupId>com.hide-and-fps</groupId>
-			<artifactId>business-logic</artifactId>
-			<version>1.0</version>
-		</dependency>
-		
+    	<!--
     	<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<version>2.6.6</version>
-			<scope>test</scope>
-		</dependency>
-		
-		<dependency>
         	<groupId>org.postgresql</groupId>
         	<artifactId>postgresql</artifactId>
         	<scope>runtime</scope>
         	<version>42.3.3</version>
     	</dependency>
-    	
+		-->		
+		
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
-			<scope>runtime</scope>
 			<optional>true</optional>
 			<version>2.6.6</version>
 		</dependency>
@@ -67,9 +54,66 @@
         </dependency>
         
         <dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-webflux</artifactId>
+		    <version>2.6.8</version>
+		</dependency>
+
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-data-r2dbc</artifactId>
+		    <version>2.6.8</version>
+		</dependency>
+
+        <dependency>
 		    <groupId>com.googlecode.json-simple</groupId>
 		    <artifactId>json-simple</artifactId>
 		    <version>1.1.1</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>io.r2dbc</groupId>
+		    <artifactId>r2dbc-postgresql</artifactId>
+		    <version>0.8.12.RELEASE</version>
+		    <scope>runtime</scope>
+		</dependency>
+		
+		<!--
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+			<version>2.6.5</version>
+		</dependency>
+		-->
+		
+		<dependency>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
+			<version>1.18.22</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.mybatis.spring.boot</groupId>
+			<artifactId>mybatis-spring-boot-starter</artifactId>
+			<version>2.2.2</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-aop</artifactId>
+			<version>2.6.5</version>
+		</dependency>
+		
+		<dependency>
+		    <groupId>commons-codec</groupId>
+		    <artifactId>commons-codec</artifactId>
+		    <version>1.15</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>nz.net.ultraq.thymeleaf</groupId>
+			<artifactId>thymeleaf-layout-dialect</artifactId>
+			<version>3.1.0</version>
 		</dependency>
 		
 	</dependencies>
@@ -116,6 +160,7 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<version>2.6.6</version>
 				<configuration>
+					<addResources>true</addResources>
 					<mainClass>com.hide_and_fps.project.ProjectApplication</mainClass>
 					<excludes>
 						<exclude>

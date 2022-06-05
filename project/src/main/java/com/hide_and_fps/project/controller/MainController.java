@@ -1,8 +1,10 @@
 package com.hide_and_fps.project.controller;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
@@ -12,8 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,35 +22,23 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.support.RequestContextUtils;
-import org.springframework.web.socket.config.annotation.WebSocketHandlerRegistry;
 
-import com.hide_and_fps.business_logic.service.file.FileUploadService;
-import com.hide_and_fps.business_logic.service.system.SyAdminService;
-import com.hide_and_fps.business_logic.util.CreateRandomCodeUtil;
-import com.hide_and_fps.project.room.vo.RoomVO;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import com.hide_and_fps.project.config.CreateRandomCodeUtil;
+import com.hide_and_fps.project.vo.RoomVO;
 
 @Controller
 @RequestMapping("")
 public class MainController {
 
-	@Autowired
-	private SyAdminService syAdminService;
+	//@Autowired
+	//private CreateRandomCodeUtil createRandomCodeUtil;
 	
-	@Autowired
-	private CreateRandomCodeUtil createRandomCodeUtil;
-    
-	@RequestMapping("/testLoadBal")
-	public String testLoadBal(@RequestParam(value="code") String code) {
-		if(code.equals("joohyoungkim19940805")) {
-			return "index";
-		}else {
-			return "";
-		}
-	}
-	
+
 	@GetMapping("/")
     public String hello(HttpSession session) {
 		System.out.println("test<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
@@ -73,6 +61,22 @@ public class MainController {
 		model.put("syAdminList", syAdminList);
 		*/
 		return "content/home";
+    }
+	/*
+    @GetMapping("/")
+    Flux<String> hello() {
+        return Flux.just("Hello", "World");
+    }
+    */
+    @GetMapping("/stream")
+    Flux<Map<String, Integer>> stream() {
+        Stream<Integer> stream = Stream.iterate(0, i -> i + 1); // Java8의 무한Stream
+        return Flux.fromStream(stream.limit(10))
+                .map(i -> Collections.singletonMap("value", i));
+    }
+    @PostMapping("/echo")
+    Mono<String> echo(@RequestBody Mono<String> body) {
+        return body.map(String::toUpperCase);
     }
     
     @GetMapping(value="/PrevTargetPage")
@@ -101,7 +105,7 @@ public class MainController {
 		model.put("test", "test");
 		
 		System.out.println("jsp 페이지 이동 <<<");
-		String code = createRandomCodeUtil.createCode();
+		String code = new CreateRandomCodeUtil().createCode();
 		
 		redirectAttr.addFlashAttribute("code", code);
 		
@@ -158,7 +162,7 @@ public class MainController {
     
     @RequestMapping(value="/chat_multi_access_multi_room_gate", method = {RequestMethod.POST, RequestMethod.GET})
     public String chat_multi_access_multi_room_gate(HttpSession session, Model model) {
-    	model.addAttribute("room_number", createRandomCodeUtil.createCode());
+    	model.addAttribute("room_number", new CreateRandomCodeUtil().createCode());
     	
     	return "content/chat_multi_access_multi_room_gate";
     }
@@ -169,5 +173,14 @@ public class MainController {
     	
     	return "content/chat_room";
     }
+    
+	@RequestMapping("/testLoadBal")
+	public String testLoadBal(@RequestParam(value="code") String code) {
+		if(code.equals("joohyoungkim19940805")) {
+			return "index";
+		}else {
+			return "";
+		}
+	}
     
 }

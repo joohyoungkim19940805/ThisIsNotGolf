@@ -1,11 +1,30 @@
-<html lang="ko" xmlns:th="http://www.thymeleaf.org" 
-				xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"> 
-<!--/* 이곳에 각 view가 위치합니다. */--> 
-	<th:block layout:fragment="head">
-	</th:block> 
-	<div> 
-		<div layout:fragment="header"></div>
-		<div layout:fragment="content"></div> 
-		<div layout:fragment="footer"></div>
-	</div> 
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org" xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+	<!--/* 이곳에 각 view가 위치합니다. */--> 
+	<!-- 공통 헤드-->
+    <th:block th:replace="fragments/head :: headFragment"></th:block>
+
+    <body id="page-top">
+        <div id="wrapper">
+            <!-- 사이드바-->
+            <th:block th:replace="fragments/sidebar:: sidebarFragment"></th:block>
+
+            <div id="content-wrapper" class="d-flex flex-column">
+                <div id="content">
+                	<header>
+	                    <!-- 상단-->
+	                    <th:block th:replace="fragments/top :: topbarFragment"></th:block>
+                    </header>
+                    	<!-- 본문-->
+                  		<th:block layout:fragment="content"></th:block>
+                </div>
+
+                <!-- 공통 하단-->
+                <th:block th:replace="fragments/footer :: footerFragment"></th:block>
+            </div>
+        </div>
+
+        <!-- 공통 스크립트-->
+        <th:block th:replace="fragments/script :: scriptFragment"></th:block>
+    </body>
 </html>

@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.hide_and_fps.project.config.SocketMssageHandler;
 
-@RestController
+//@RestController
 public class ApiController {
 
 	private int totalCount = 0;
@@ -29,7 +29,7 @@ public class ApiController {
 	private int statusUpCount = 0;
 	private int statusKeepCount = 0;
 	
-	@PostMapping(value = "testApi", produces = MediaType.APPLICATION_JSON_VALUE)
+	//@PostMapping(value = "testApi", produces = MediaType.APPLICATION_JSON_VALUE)
 	public String testApiPost(@RequestBody Map<String, Object> attributes, HttpServletRequest request) {
 		//System.out.println(attributes);
 		/*

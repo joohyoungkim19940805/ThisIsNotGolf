@@ -23,8 +23,8 @@ import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorato
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.hide_and_fps.project.room.vo.RoomVO;
-import com.hide_and_fps.project.user.vo.ClientInfoVO;
+import com.hide_and_fps.project.vo.ClientInfoVO;
+import com.hide_and_fps.project.vo.RoomVO;
 
 import static java.util.Map.entry;
 
