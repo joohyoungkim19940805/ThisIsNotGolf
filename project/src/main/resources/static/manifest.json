@@ -1,0 +1,9 @@
+{
+  "name" : "kim.joohyoung",
+  "short_name" : "ThisIsNotGolf",
+  "start_url" : "/",
+  "scope" : ".",
+  "display" : "standalone",
+  "orientation" : "landscape",
+  "lang" : "UTF-8"
+}

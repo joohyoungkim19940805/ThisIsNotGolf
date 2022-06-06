@@ -1,0 +1,72 @@
+@charset "UTF-8";
+
+ul.right_top_items{
+display: flex;
+    justify-content: flex-end;
+    gap: 0.8rem;
+    font: icon;
+    align-items: flex-start;
+}
+
+.setting ul.sidebar#right_sidebar{
+    right: 0rem;
+    font-size: 0.9rem;
+    height: 100%;
+    top: 0rem;
+    display: grid;
+    align-content: stretch;
+}
+
+ul.sidebar#right_sidebar > li:first-child{
+	text-align: end;
+	margin: 0.45rem;
+	background: none;
+	padding-bottom: 0.67rem;
+	
+}
+
+li.right_top_side_items {
+    background-color: aquamarine;
+    display: grid;
+    align-content: center;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+}
+
+ul.right_top_items  .setting summary{
+	text-align: end;
+}
+
+.icon_common{
+	width:1rem;
+}
+
+.money{
+    background-color: #c08181;
+    color: white;
+    font-weight: bold;
+    padding-top: 0.2rem;
+    padding-bottom: 0.2rem;
+    padding-left: 0.7rem;
+    padding-right: 0.3rem;
+}
+
+.setting {
+    padding-top: 0.2rem;
+    padding-bottom: 0.2rem;
+    padding-right: 0.3rem;
+}
+
+.right_top_side_items > div{
+	display: flex;
+    background-color: antiquewhite;
+    border-radius: 1rem;
+    padding-right: 0.5rem;
+    padding-left: 0.1rem;
+    align-items: center;
+}
+
+.right_top_side_items span.right_sidebar_value{
+	width: 100%;
+    text-align: center;
+}

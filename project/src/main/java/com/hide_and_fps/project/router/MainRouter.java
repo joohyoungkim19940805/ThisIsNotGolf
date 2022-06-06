@@ -26,15 +26,15 @@ public class MainRouter {
 	
 	@Bean
 	public RouterFunction<ServerResponse> index2(MainHandler webFluxHandler){
-		return RouterFunctions.route(RequestPredicates.GET("/index")
+		return RouterFunctions.route(RequestPredicates.GET("/home")
 				.and(RequestPredicates.accept(MediaType.TEXT_HTML)),
-				webFluxHandler::home);
+				webFluxHandler::mainPage);
 	}
 	
 	@Bean
 	public RouterFunction<ServerResponse> home(MainHandler webFluxHandler){
-		return RouterFunctions.route(RequestPredicates.GET("/home")
+		return RouterFunctions.route(RequestPredicates.GET("/homeTest")
 				.and(RequestPredicates.accept(MediaType.TEXT_HTML)),
-				webFluxHandler::home);
+				webFluxHandler::homeTest);
 	}
 }
