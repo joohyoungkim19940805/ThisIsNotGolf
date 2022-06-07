@@ -6,7 +6,7 @@
 
 	<groupId>com.hide-and-fps</groupId>
 	<artifactId>project</artifactId>
-	<version>0.55-SNAPSHOT</version>
+	<version>0.6.2-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>hide-and-fps</name>
 
