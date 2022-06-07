@@ -37,4 +37,11 @@ public class MainRouter {
 				.and(RequestPredicates.accept(MediaType.TEXT_HTML)),
 				webFluxHandler::homeTest);
 	}
+	
+	@Bean
+	public RouterFunction<ServerResponse> twich(MainHandler webFluxHandler){
+		return RouterFunctions.route(RequestPredicates.GET("/twich")//"sexy/cute/jureureu")
+				.and(RequestPredicates.accept(MediaType.TEXT_HTML)),
+				webFluxHandler::twich);
+	}
 }

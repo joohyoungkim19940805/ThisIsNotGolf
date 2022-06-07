@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>주폭도는 풀 수 있는 게임 ♥</title>
+<link rel="icon" type="image/x-icon" th:href=@{images/favicon.ico}>
+<script type="text/javascript">
+	const webSocket = new WebSocket('ws://localhost:8079/room/twich?access=twich');
+	webSocket.onopen = function () { //서버쪽이랑 연결된 순간 onopen 메서드 호출되고
+        //console.log('서버와 웹소켓 연결 성공!');
+    };
+    webSocket.onmessage = function (event) { //서버쪽에서 메세지가 전달된 순간 onmessage가 실행된다.
+        console.log(event.data); //서버에서 받은 메세지가 event.data에 담긴다.
+        //webSocket.send('클라이언트에서 서버로 답장을 보냅니다'); //프론트에서 서버로 데이터를 보낼 때는 send를 사용함.
+        test++;
+        if(test>100){webSocket.close()}
+    };
+</script>
+</head>
+<body style="height: 100%; min-height: 100%;">
+	<div style="background-image: url('images/jululu_background_image.png'); 
+		background-repeat: no-repeat;
+    	background-size: 100% 100%;position:absolute; top:0; bottom:0; right:0; left:0;">
+		
+	</div>
+</body>
+</html>

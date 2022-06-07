@@ -33,4 +33,10 @@ public class MainHandler {
 				));
 	}
 	
+	public Mono<ServerResponse> twich(ServerRequest request){
+		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/twich", Map.ofEntries(
+					Map.entry("data", new MainEntity("a", (long)9999, "asasas", (int)10, 100, 100))
+				));
+	}
+	
 }

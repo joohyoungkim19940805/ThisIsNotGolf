@@ -67,6 +67,8 @@ public class SocketMssageHandler extends TextWebSocketHandler {
      */
     private String roomIdKey = "access";
     
+    private Bot bot = new Bot();
+    
     /**
      * 발송한 사람의 session을 제외한 receptionSessionsList(수신 유저 리스트)에 message를 전달한다.
      * @param sendSession 
@@ -78,6 +80,12 @@ public class SocketMssageHandler extends TextWebSocketHandler {
      */
     @Override
     public void handleTextMessage(WebSocketSession sendSession, TextMessage message) throws InterruptedException, IOException {
+    	if(sendSession.getUri().getPath().equals("/room/twich")) 
+    	{
+    		
+    	}
+    	else 
+    	{
     	if(sendSession.isOpen()) {
 	    	room.get( getQueryMap( sendSession ).get(0) ).stream().forEach(client ->{
 	    		//logger.debug(message.getPayload());
@@ -91,7 +99,7 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 	            */
 	    	});
     	}
-
+    	}
     }
     
     /**
@@ -114,6 +122,11 @@ public class SocketMssageHandler extends TextWebSocketHandler {
     	{
     	    ClientInfoVO clientInfoVo = setClientInfoTemplate(session);
     	    roomRoomIdAccessEndPoint(session, clientInfoVo);
+    	}
+    	else if(session.getUri().getPath().equals("/room/twich")) {
+    		Bot bot = new Bot();
+    		bot.registerFeatures();
+    		bot.start();
     	}
     }
     
