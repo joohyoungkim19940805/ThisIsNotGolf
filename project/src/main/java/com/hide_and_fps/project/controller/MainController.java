@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+//import javax.servlet.http.HttpServletRequest;
+//import javax.servlet.http.HttpSession;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,15 +22,15 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.springframework.web.servlet.support.RequestContextUtils;
+//import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+//import org.springframework.web.servlet.support.RequestContextUtils;
 
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import com.hide_and_fps.project.config.CreateRandomCodeUtil;
 import com.hide_and_fps.project.vo.RoomVO;
-
+/*
 @Controller
 @RequestMapping("")
 public class MainController {
@@ -44,30 +44,11 @@ public class MainController {
 		System.out.println("test<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<");
 		session.setAttribute("testId", "testValue");
     	HashMap<String, Object> model = new HashMap<String, Object>();
-		/*
-    	SyAdminDto syAdminDto = this.syAdminService.getAdminById(1);
-		
-		System.out.println(syAdminDto);
-		System.out.println(syAdminDto.getId());	
-		*/
 		model.put("syAdminDto", "test<<<");
       
-		/*
-		List<SyAdminDto> syAdminList = this.syAdminService.searchAdminList();
-		for(SyAdminDto admin:syAdminList) {
-			System.out.println(admin.getName());
-		}
-		//System.out.println(syAdminList);
-		model.put("syAdminList", syAdminList);
-		*/
 		return "content/home";
     }
-	/*
-    @GetMapping("/")
-    Flux<String> hello() {
-        return Flux.just("Hello", "World");
-    }
-    */
+	
     @GetMapping("/stream")
     Flux<Map<String, Integer>> stream() {
         Stream<Integer> stream = Stream.iterate(0, i -> i + 1); // Java8의 무한Stream
@@ -184,3 +165,4 @@ public class MainController {
 	}
     
 }
+*/

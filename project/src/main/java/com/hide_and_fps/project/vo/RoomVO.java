@@ -17,11 +17,11 @@ import org.apache.ibatis.javassist.NotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.socket.WebSocketSession;
-import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
+//import org.springframework.web.socket.WebSocketSession;
+//import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.hide_and_fps.project.config.SocketMssageHandler;
+//import com.hide_and_fps.project.config.SocketMssageHandler;
 import com.hide_and_fps.project.config.CreateRandomCodeUtil;
 
 /**
@@ -176,6 +176,7 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
      * @author joohyoung.kim
      * @version 1.0
      */
+	/*
 	public ClientInfoVO outRoomRemoveUser(WebSocketSession session) throws NotFoundException {
 		ClientInfoVO client = null;
 		MultiValueMap<String, String> parameters = UriComponentsBuilder.fromUri(session.getUri()).build().getQueryParams();
@@ -210,7 +211,7 @@ public class RoomVO extends ConcurrentHashMap<String, CopyOnWriteArrayList<Clien
 		}
 		return client;
 	}
-	
+	*/
     /**
      * 32바이트로 이루어진 랜덤 코드 발급받기
      * @return String : 랜덤으로 발급받은 코드로 base32로 인코딩 된 상태이다.

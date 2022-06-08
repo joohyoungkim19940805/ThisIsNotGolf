@@ -1,7 +1,9 @@
-package com.hide_and_fps.project.config;
+package com.hide_and_fps.project.socket;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hide_and_fps.project.twich.Bot;
+
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketMessage;
@@ -20,13 +22,16 @@ public class NewSocketMessageHandler implements WebSocketHandler {
 
 
     private static final ObjectMapper json = new ObjectMapper();
+    private Bot twichBot = new Bot();
 
     private Flux<String> eventFlux = Flux.generate(sink -> {
-        Map<String, String> event = Map.ofEntries(
-        			Map.entry(randomUUID().toString(), now().toString())
-        		);
+
         try {
-            sink.next(json.writeValueAsString(event));
+            sink.next(json.writeValueAsString(
+            		 Map.ofEntries(
+                 			Map.entry(randomUUID().toString(), now().toString())
+                 		)
+        			));
         } catch (JsonProcessingException e) {
             sink.error(e);
         }

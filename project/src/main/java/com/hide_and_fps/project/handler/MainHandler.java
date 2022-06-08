@@ -51,10 +51,6 @@ public class MainHandler {
 	
 	@SuppressWarnings("unchecked")
 	public Mono<ServerResponse> testApi(ServerRequest request){
-		int i = reqCounter.getAndIncrement();
-		if(i > 40000 ) {
-			System.out.println("reqCounter : " + reqCounter.get());
-		}
 		return request.bodyToMono(JSONObject.class)
 		        .publishOn(Schedulers.elastic())
 		        .switchIfEmpty(Mono.error(new IllegalStateException("user required")))

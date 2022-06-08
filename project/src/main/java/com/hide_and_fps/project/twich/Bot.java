@@ -1,4 +1,4 @@
-package com.hide_and_fps.project.config;
+package com.hide_and_fps.project.twich;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -6,12 +6,10 @@ import com.github.philippheuer.credentialmanager.domain.OAuth2Credential;
 import com.github.twitch4j.TwitchClient;
 import com.github.twitch4j.TwitchClientBuilder;
 import com.github.philippheuer.events4j.simple.SimpleEventHandler;
-
-import com.hide_and_fps.project.config.ChannelNotificationOnDonation;
-import com.hide_and_fps.project.config.ChannelNotificationOnFollow;
-import com.hide_and_fps.project.config.ChannelNotificationOnSubscription;
-import com.hide_and_fps.project.config.WriteChannelChatToConsole;
-import com.hide_and_fps.project.config.Configuration;
+import com.hide_and_fps.project.twich.ChannelNotificationOnDonation;
+import com.hide_and_fps.project.twich.ChannelNotificationOnFollow;
+import com.hide_and_fps.project.twich.ChannelNotificationOnSubscription;
+import com.hide_and_fps.project.twich.Configuration;
 
 import java.io.InputStream;
 
@@ -27,6 +25,8 @@ public class Bot {
      */
     private TwitchClient twitchClient;
 
+    private SimpleEventHandler eventHandler;
+    
     /**
      * Constructor
      */
@@ -60,30 +60,28 @@ public class Bot {
                  */
                 .withEnableGraphQL(true)
                 /*
-                 * Kraken is going to be deprecated
-                 * see : https://dev.twitch.tv/docs/v5/#which-api-version-can-you-use
-                 * It is only here so you can call methods that are not (yet)
-                 * implemented in Helix
-                 */
-                .withEnableKraken(true)
-                /*
                  * Build the TwitchClient Instance
                  */
                 .build();
         //endregion
+        registerFeatures();
+        start();
+        
     }
 
     /**
      * Method to register all features
      */
     public void registerFeatures() {
-		SimpleEventHandler eventHandler = twitchClient.getEventManager().getEventHandler(SimpleEventHandler.class);
+		this.eventHandler = twitchClient.getEventManager().getEventHandler(SimpleEventHandler.class);
 
         // Register Event-based features
-        ChannelNotificationOnDonation channelNotificationOnDonation = new ChannelNotificationOnDonation(eventHandler);
+        /*
+		ChannelNotificationOnDonation channelNotificationOnDonation = new ChannelNotificationOnDonation(eventHandler);
         ChannelNotificationOnFollow channelNotificationOnFollow = new ChannelNotificationOnFollow(eventHandler);
         ChannelNotificationOnSubscription channelNotificationOnSubscription = new ChannelNotificationOnSubscription(eventHandler);
 		WriteChannelChatToConsole writeChannelChatToConsole = new WriteChannelChatToConsole(eventHandler);
+    	*/
     }
 
     /**

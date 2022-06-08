@@ -16,13 +16,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
+/*
 import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+*/
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.hide_and_fps.project.twich.Bot;
 import com.hide_and_fps.project.vo.ClientInfoVO;
 import com.hide_and_fps.project.vo.RoomVO;
 
@@ -39,35 +42,36 @@ import static java.util.Map.entry;
  * </pre>
  * @version 1.0
  */
+/*
 @Component
 public class SocketMssageHandler extends TextWebSocketHandler {
-	
+*/	
 	/**
 	 * 로거 : SocketMssageHandler.class
 	 */
-	private static final Logger logger = LoggerFactory.getLogger(SocketMssageHandler.class);
+	//private static final Logger logger = LoggerFactory.getLogger(SocketMssageHandler.class);
 	
 	/**
 	 * room 내 데이터 핸들링을 위한 클래스로 이 클래스는 반드시 싱글톤으로 사용 할 것
 	 */
-    private final RoomVO room = new RoomVO();
+    //private final RoomVO room = new RoomVO();
     
     /**
      * 전송 시간 제한
      */
-    private int sendTimeLimit = (int)TimeUnit.SECONDS.toMillis(10);
+    //private int sendTimeLimit = (int)TimeUnit.SECONDS.toMillis(10);
     
     /**
      * 전송 버퍼 크기 제한
      */
-    private int sendBufferSizeLimit = 512 * 1024;
+    //private int sendBufferSizeLimit = 512 * 1024;
 
     /**
      * room 접속 시 queryString에 들어가는 parameter의 키값
      */
-    private String roomIdKey = "access";
+    //private String roomIdKey = "access";
     
-    private Bot bot = new Bot();
+    //private Bot bot = new Bot();
     
     /**
      * 발송한 사람의 session을 제외한 receptionSessionsList(수신 유저 리스트)에 message를 전달한다.
@@ -78,7 +82,8 @@ public class SocketMssageHandler extends TextWebSocketHandler {
      * @author joohyoung.kim
      * @version 1.0
      */
-    @Override
+	/*
+	@Override
     public void handleTextMessage(WebSocketSession sendSession, TextMessage message) throws InterruptedException, IOException {
     	if(sendSession.getUri().getPath().equals("/room/twich")) 
     	{
@@ -93,15 +98,11 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 	                	sendMessage(client.getSessionDecorator(), message);
 	            }
 	
-	            /*
-	            TextMessage message2 = new TextMessage("{\"event\":\"serverMessage\",\"serverMin\":\"전체 메시지 테스트입니다.\"}".getBytes());
-	            webSocketSession.sendMessage(message2);
-	            */
 	    	});
     	}
     	}
     }
-    
+    */
     /**
      * 사용자가 웹 소켓을 연결할 때 최조 실행되는 method로 2개의 endPoint 사용 중 (/room/game, /room/roomId(매개변수 access=${roomIdNumber}))
      * @param session
@@ -109,6 +110,7 @@ public class SocketMssageHandler extends TextWebSocketHandler {
      * @author joohyoung.kim
      * @version 1.0
      */
+	/*
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
 
@@ -129,13 +131,14 @@ public class SocketMssageHandler extends TextWebSocketHandler {
     		bot.start();
     	}
     }
-    
+   	*/
     /**
      * 사용자가 웹 소켓을 연결할 때 room/game end point를 처리하는 함수
      * @param session : 연결자의 session
      * @author joohyoung.kim
      * @version 1.0
      */
+	/*
     private void roomGameEndPoint(WebSocketSession session) {
 		String roomIdWaiting = room.getWaitingRoomId();
 		if(roomIdWaiting.isEmpty() == false) 
@@ -147,6 +150,7 @@ public class SocketMssageHandler extends TextWebSocketHandler {
     		sendMessage(session, new TextMessage(roomInfo));
 		}
     }
+    */
     /**
      * 사용자가 웹 소켓을 연결할 때 room/roomId?access=${roomIdNumber} end point를 처리하는 함수
      * @param session : 연결자의 session
@@ -154,7 +158,8 @@ public class SocketMssageHandler extends TextWebSocketHandler {
      * @author joohyoung.kim
      * @version 1.0
      */
-    private void roomRoomIdAccessEndPoint(WebSocketSession session, ClientInfoVO clientInfoVo) throws Exception {
+    /*
+	private void roomRoomIdAccessEndPoint(WebSocketSession session, ClientInfoVO clientInfoVo) throws Exception {
     	
     	// room이 가득 차서 접속 실패했을 경우
     	if(room.accessRoom(getQueryMap( session ).get(0), clientInfoVo) == false) 
@@ -190,7 +195,7 @@ public class SocketMssageHandler extends TextWebSocketHandler {
         	super.afterConnectionEstablished(session);
     	}
     }
-    
+    */
     /**
      * 접속자가 web socket 연결을 끊을시 실행되는 함수
      * @param session : 연결을 끊은 접속자의 session
@@ -199,11 +204,12 @@ public class SocketMssageHandler extends TextWebSocketHandler {
      * @author joohyoung.kim
      * @version 0.9
      */
+	/*
 	@Override
 	public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
 		sendOutUserInfo(session);
 	}
-	
+	*/
     /**
      * web soket에서 모종의 이유로 오류가 난 경우로 Override로 구현 된 내용은 사용자는 out 시키게 하고 있다.
      * @param session : 오류가 난 접속자의 session
@@ -212,11 +218,12 @@ public class SocketMssageHandler extends TextWebSocketHandler {
      * @author joohyoung.kim
      * @version 0.1
      */
+	/*
 	@Override
     public void handleTransportError(WebSocketSession session, Throwable throwable) {
 		sendOutUserInfo(session);
     }
-	
+	*/
     /**
      * session 상태에 따라 target이 되는 session에 message를 전달하는 함수
      * @param session : message를 전달할 target이 되는 session
@@ -224,6 +231,7 @@ public class SocketMssageHandler extends TextWebSocketHandler {
      * @author joohyoung.kim
      * @version 0.1
      */
+	/*
 	private void sendMessage(WebSocketSession session, TextMessage message) {
 		try {
 			if(session.isOpen()) {
@@ -237,13 +245,14 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 			}
 		}
 	}
-	
+	*/
     /**
      * target이 되는 session 유저의 소켓 연결을 해제하고 room에서 out 시키는 함수
      * @param session : 연결을 끊을 접속자의 session
      * @author joohyoung.kim
      * @version 0.9
      */
+	/*
 	private void sendOutUserInfo(WebSocketSession session) {
     	if(session.getUri().getPath().equals("/room/game")) {
     		System.out.println(session.getUri().getPath());
@@ -266,20 +275,10 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 					}
 				}catch(NotFoundException e){
 					logger.error("error<<<<<<<<<<<<<<<<<<<<<<<<<<<<<", e);
-				}/*
-				session.close();
-			} catch (IOException e) {
-				session = null;
-			} catch (NotFoundException e) {
-				try{
-					session.close();
-				} catch (IOException e1) {
-					session = null;
 				}
-			}*/
     	}
 	}
-	
+	*/
     /**
      * 현재 room에 접속 중인 유저들의 client info를 해당 룸에 room에 최초 접속하는 유저에게 전달해주기 위해 접속 중인 유저들의 정보를 json 형태로 만들어주는 함수
      * @param clientInfoVo : 접속을 시도한 유저의 클라이언트 정보
@@ -287,6 +286,7 @@ public class SocketMssageHandler extends TextWebSocketHandler {
      * @author joohyoung.kim
      * @version 1.0
      */
+	/*
 	public String createRoomAccessUsersInfo(ClientInfoVO clientInfoVo) {
 		String roomAccessUsess = """
 				{
@@ -306,7 +306,7 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 											.collect(Collectors.joining(","));
 		return roomAccessUsess.formatted( users );
 	}
-	
+	*/
     /**
      * session에 해당하는 접속자의 클라이언트 정보를 생성하여 반환하는 함수
      * @param session : 클라이언트 정보를 발급받을 session
@@ -314,6 +314,7 @@ public class SocketMssageHandler extends TextWebSocketHandler {
      * @author joohyoung.kim
      * @version 1
      */
+	/*
 	public ClientInfoVO setClientInfoTemplate(WebSocketSession session) {
 		
 		return new ClientInfoVO(Map.ofEntries(
@@ -325,7 +326,7 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 				, entry("sessionDecorator", new ConcurrentWebSocketSessionDecorator (session, sendTimeLimit, sendBufferSizeLimit))
 		));
 	}
-	
+	*/
     /**
      * RoomVO 객체의 getWaitingRoomId 함수로 발급받아 방에 접속 요청을 할 때 room/roomId?access=${roomIdNumber}에서 access queryString parameter를 가져오는 함수
      * @param targetSession : 접근 요청자의 session
@@ -333,11 +334,12 @@ public class SocketMssageHandler extends TextWebSocketHandler {
      * @author joohyoung.kim
      * @version 0.9
      */
+	/*
 	private List<String> getQueryMap(WebSocketSession targetSession) {
 		MultiValueMap<String, String> parameters = UriComponentsBuilder.fromUri(targetSession.getUri()).build().getQueryParams();
 	    return parameters.get(roomIdKey);
 	}
-	
+	*/
 	/*
 	public static void main(String args[]) {
 		final List<Integer> list = Arrays.asList(1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40);
@@ -360,4 +362,4 @@ public class SocketMssageHandler extends TextWebSocketHandler {
 				);
 	}
 	*/
-}
+//}

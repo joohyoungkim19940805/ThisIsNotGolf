@@ -1,4 +1,4 @@
-package com.hide_and_fps.project.config;
+package com.hide_and_fps.project.socket;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +22,8 @@ public class NewWebSocketConfig {
     @Bean
     public HandlerMapping webSocketHandlerMapping() {
         Map<String, WebSocketHandler> map = new HashMap<>();
+        map.put("/room", webSocketHandler);
+        map.put("/room/roomId", webSocketHandler);
         map.put("/room/twich", webSocketHandler);
 
         SimpleUrlHandlerMapping handlerMapping = new SimpleUrlHandlerMapping();

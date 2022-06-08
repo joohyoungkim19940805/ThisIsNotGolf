@@ -40,13 +40,7 @@
 			<optional>true</optional>
 			<version>2.6.6</version>
 		</dependency>
-		
-		<dependency>
-		    <groupId>org.springframework.boot</groupId>
-		    <artifactId>spring-boot-starter-websocket</artifactId>
-		    <version>2.6.6</version>
-		</dependency>
-		
+
 		<dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
@@ -141,6 +135,11 @@
 		<dependency>
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-integration</artifactId>
+		    <version>2.6.8</version>
+		</dependency>
+		<dependency>
+		    <groupId>org.springframework.boot</groupId>
+		    <artifactId>spring-boot-starter-tomcat</artifactId>
 		    <version>2.6.8</version>
 		</dependency>
 	</dependencies>

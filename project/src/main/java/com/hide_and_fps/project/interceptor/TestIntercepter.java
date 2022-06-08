@@ -1,5 +1,5 @@
 package com.hide_and_fps.project.interceptor;
-
+/*
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -38,3 +38,4 @@ public class TestIntercepter implements HandlerInterceptor{
 		
 	}
 }
+*/

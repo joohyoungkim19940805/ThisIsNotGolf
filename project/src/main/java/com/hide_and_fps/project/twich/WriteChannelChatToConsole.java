@@ -1,4 +1,4 @@
-package com.hide_and_fps.project.config;
+package com.hide_and_fps.project.twich;
 
 import com.github.philippheuer.events4j.simple.SimpleEventHandler;
 import com.github.twitch4j.chat.events.channel.ChannelMessageEvent;

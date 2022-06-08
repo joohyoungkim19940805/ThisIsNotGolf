@@ -2,7 +2,7 @@ package com.hide_and_fps.project.vo;
 
 import java.util.Map;
 
-import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
+//import org.springframework.web.socket.handler.ConcurrentWebSocketSessionDecorator;
 
 public class ClientInfoVO {
 
@@ -30,7 +30,7 @@ public class ClientInfoVO {
 	
 	private int access_user;
 	
-	private ConcurrentWebSocketSessionDecorator sessionDecorator;
+//	private ConcurrentWebSocketSessionDecorator sessionDecorator;
 	
 	public ClientInfoVO() {}
 	
@@ -40,7 +40,7 @@ public class ClientInfoVO {
 		this.access_time = (long) map.get("access_time");
 		this.event = (String) map.get("event");
 		this.access_user = (int) map.get("access_user");
-		this.sessionDecorator = (ConcurrentWebSocketSessionDecorator) map.get("sessionDecorator");
+//		this.sessionDecorator = (ConcurrentWebSocketSessionDecorator) map.get("sessionDecorator");
 	}
 	
 	public String getSendClientInfoTemplate() {
@@ -75,11 +75,12 @@ public class ClientInfoVO {
 	public String getClient_room_url() {
 		return this.client_room_url;
 	}
-	
+/*	
 	public ConcurrentWebSocketSessionDecorator getSessionDecorator() {
 		return this.sessionDecorator;
 	}
-
+*/
+/*
 	public ClientInfoVO get() {
 		if(sessionDecorator != null) {
 			return this;
@@ -87,5 +88,5 @@ public class ClientInfoVO {
 			return null;
 		}
 	}
-	
+*/	
 }

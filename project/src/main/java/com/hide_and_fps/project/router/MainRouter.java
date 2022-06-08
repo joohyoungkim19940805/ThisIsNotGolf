@@ -49,6 +49,7 @@ public class MainRouter {
 	
 	@Bean
 	public RouterFunction<ServerResponse> home(MainHandler webFluxHandler){
+		//for(int i ) {}
 		return RouterFunctions.route(RequestPredicates.GET("/homeTest")
 				.and(RequestPredicates.accept(MediaType.TEXT_HTML)),
 				webFluxHandler::homeTest);
