@@ -6,9 +6,6 @@ import com.github.philippheuer.credentialmanager.domain.OAuth2Credential;
 import com.github.twitch4j.TwitchClient;
 import com.github.twitch4j.TwitchClientBuilder;
 import com.github.philippheuer.events4j.simple.SimpleEventHandler;
-import com.hide_and_fps.project.twich.ChannelNotificationOnDonation;
-import com.hide_and_fps.project.twich.ChannelNotificationOnFollow;
-import com.hide_and_fps.project.twich.ChannelNotificationOnSubscription;
 import com.hide_and_fps.project.twich.Configuration;
 
 import java.io.InputStream;
@@ -72,9 +69,8 @@ public class Bot {
     /**
      * Method to register all features
      */
-    public void registerFeatures() {
+    private void registerFeatures() {
 		this.eventHandler = twitchClient.getEventManager().getEventHandler(SimpleEventHandler.class);
-
         // Register Event-based features
         /*
 		ChannelNotificationOnDonation channelNotificationOnDonation = new ChannelNotificationOnDonation(eventHandler);
@@ -101,11 +97,15 @@ public class Bot {
         }
     }
 
-    public void start() {
+    private void start() {
         // Connect to all channels
         for (String channel : configuration.getChannels()) {
             twitchClient.getChat().joinChannel(channel);
         }
+    }
+    
+    public SimpleEventHandler getTwichEventHandler() {
+    	return this.eventHandler;
     }
 
 }

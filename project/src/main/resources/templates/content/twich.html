@@ -12,9 +12,10 @@
     webSocket.onmessage = function (event) { //서버쪽에서 메세지가 전달된 순간 onmessage가 실행된다.
         console.log(event.data); //서버에서 받은 메세지가 event.data에 담긴다.
         //webSocket.send('클라이언트에서 서버로 답장을 보냅니다'); //프론트에서 서버로 데이터를 보낼 때는 send를 사용함.
-        test++;
-        if(test>100){webSocket.close()}
     };
+    webSocket.onclose = function (event){
+    	console.log(event.reason);
+    }
 </script>
 </head>
 <body style="height: 100%; min-height: 100%;">
