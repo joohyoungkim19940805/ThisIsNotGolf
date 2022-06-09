@@ -3,41 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>Insert title here</title>
-	<script type="text/javascript">
-		const webSocket = new WebSocket('ws://localhost:8079/room/twich');
-		webSocket.onopen = function () { //서버쪽이랑 연결된 순간 onopen 메서드 호출되고
-	        //console.log('서버와 웹소켓 연결 성공!');
-	    };
-	    webSocket.onmessage = function (event) { //서버쪽에서 메세지가 전달된 순간 onmessage가 실행된다.
-	        console.log(event.data); //서버에서 받은 메세지가 event.data에 담긴다.
-	        //webSocket.send('클라이언트에서 서버로 답장을 보냅니다'); //프론트에서 서버로 데이터를 보낼 때는 send를 사용함.
-	        //if(test>100){webSocket.close()}
-	        if(event.data.hasOwnProperty('chat')){
-	        	messageViewLoder({});
-	        }
-	    };
-	    var chatContentTemplate = (()=>{
-			let div = document.createElement('div');
-			let idWrap = document.createElement('span');
-			let chatMessage = document.createElement('span');
-			idWrap.className = 'chat_id';
-			chatMessage.className = 'chat_message';
-			div.append(...[idWrap, chatMessage]);
-			return div;
-		})();
-	    function messageViewLoder(message){
-			console.log(message);
-			if(chatContentArr){
-				let chatWrap = chatContentTemplate.cloneNode(true);
-				chatWrap.querySelector('.chat_id').textContent = message.client_id
-				chatWrap.querySelector('.chat_message').textContent = message.message;
-				chatContentArr.append(chatWrap);
-			}
-		}
-	    window.onload = () => {
-			chatContentArr = document.querySelector('#chat_message_content');
-		}
-	</script>
+
 </head>
 <body>
 	<div id="chat_message_content" class="chat_content" style="width:500px; height:500px; writing-mode: horizontal-tb;overflow-y: scroll;overflow-x: clip;overflow-wrap: break-word;border: inset;">

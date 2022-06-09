@@ -4,16 +4,6 @@
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="~{layout/default_layout}">
 	<div layout:fragment="content">
-	<script type="text/javascript">
-		const webSocket = new WebSocket('ws://localhost:8079/room/twich');
-		webSocket.onopen = function () { //서버쪽이랑 연결된 순간 onopen 메서드 호출되고
-	        //console.log('서버와 웹소켓 연결 성공!');
-	    };
-	    webSocket.onmessage = function (event) { //서버쪽에서 메세지가 전달된 순간 onmessage가 실행된다.
-	        console.log(event.data); //서버에서 받은 메세지가 event.data에 담긴다.
-	        //webSocket.send('클라이언트에서 서버로 답장을 보냅니다'); //프론트에서 서버로 데이터를 보낼 때는 send를 사용함.
-	        //if(test>100){webSocket.close()}
-	    };
-	</script>
+
 	</div>
 </html>
