@@ -30,7 +30,14 @@ public class Bot {
     public Bot() {
         // Load Configuration
         loadConfiguration();
+        setBot();
 
+        registerFeatures();
+        start();
+        
+    }
+    
+    public Bot setBot() {
         TwitchClientBuilder clientBuilder = TwitchClientBuilder.builder();
 
         //region Auth
@@ -61,11 +68,13 @@ public class Bot {
                  */
                 .build();
         //endregion
-        registerFeatures();
-        start();
-        
+        return this;
     }
-
+    
+    public void newSetClient(String channel) {
+    	twitchClient.getChat().joinChannel(channel);
+    }
+    
     /**
      * Method to register all features
      */

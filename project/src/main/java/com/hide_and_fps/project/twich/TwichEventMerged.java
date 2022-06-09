@@ -4,6 +4,9 @@ import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import org.json.simple.JSONObject;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.reactive.socket.WebSocketSession;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import com.github.twitch4j.chat.events.channel.ChannelMessageEvent;
 import com.github.twitch4j.chat.events.channel.DonationEvent;
@@ -18,7 +21,8 @@ public abstract class TwichEventMerged extends Bot {
 		super();
 	}
 	
-	public void connectTwich() {
+	public WebSocketSession connectTwich(WebSocketSession webSocketSession) {
+		
 		if(isRun == false) {
 			ChannelNotificationOnDonation();
 			ChannelNotificationOnFollow();
@@ -26,7 +30,11 @@ public abstract class TwichEventMerged extends Bot {
 			WriteChannelChatToConsole();
 			
 			isRun = true;
+		}else if(webSocketSession.getHandshakeInfo().getUri().getPath().equals("/room/newChannel")){
+			super.setBot().newSetClient(UriComponentsBuilder.fromUri(webSocketSession.getHandshakeInfo().getUri()) .build().getQueryParams().get("channel").get(0));
 		}
+		
+		return webSocketSession;
 	}
 	
 	public final Queue<JSONObject> messageRoom = new ConcurrentLinkedQueue<>();

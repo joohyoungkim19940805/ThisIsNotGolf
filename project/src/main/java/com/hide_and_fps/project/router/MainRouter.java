@@ -54,7 +54,7 @@ public class MainRouter {
 				.and(RequestPredicates.accept(MediaType.TEXT_HTML)),
 				webFluxHandler::homeTest);
 	}
-	
+
 	@Bean
 	public RouterFunction<ServerResponse> twich(MainHandler webFluxHandler){
 		return RouterFunctions.route(RequestPredicates.GET("/twich")//"sexy/cute/jureureu")
@@ -62,6 +62,15 @@ public class MainRouter {
 				webFluxHandler::twich);
 	}
 
+	
+	@Bean
+	public RouterFunction<ServerResponse> testApi(MainHandler webFluxHandler){
+		return RouterFunctions.route(RequestPredicates.POST("/testApi")
+				.and(RequestPredicates.accept(MediaType.APPLICATION_JSON)),
+				webFluxHandler::testApi);
+	}
+	
+	/*
 	@SuppressWarnings("unchecked")
 	public Mono<ServerResponse> testApi(ServerRequest request){
 		int i = reqCounter.getAndIncrement();
@@ -90,12 +99,13 @@ public class MainRouter {
 		        });
 
 		
-		/*
 		
-		return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(
-				Mono.just( Map.ofEntries( Map.entry("resCount", counter.getAndIncrement()) ) )
-				, Map.class);
-		 */
+		
+		//return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(
+		//		Mono.just( Map.ofEntries( Map.entry("resCount", counter.getAndIncrement()) ) )
+		//		, Map.class);
+		 
 	}
+	*/
 	
 }

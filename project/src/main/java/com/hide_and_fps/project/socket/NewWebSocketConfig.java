@@ -25,6 +25,7 @@ public class NewWebSocketConfig {
         map.put("/room", webSocketHandler);
         map.put("/room/roomId", webSocketHandler);
         map.put("/room/twich", webSocketHandler);
+        map.put("/room/newChannel", webSocketHandler);
 
         SimpleUrlHandlerMapping handlerMapping = new SimpleUrlHandlerMapping();
         handlerMapping.setOrder(1);

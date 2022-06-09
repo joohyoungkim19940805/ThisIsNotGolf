@@ -64,7 +64,10 @@ public class MainHandler {
 		            if(j > 3200000) {
 			            System.out.println("totalCount : " + counter.get());
 		            }
-		            return ServerResponse.ok().build();
+		            //return ServerResponse.ok().build();
+		            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(
+							Mono.just( new JSONObject (Map.ofEntries( Map.entry("attributes_processed", map.size()) ) ))
+							, JSONObject.class);
 		        })
 		        .onErrorResume(err -> {
 		            err.printStackTrace();

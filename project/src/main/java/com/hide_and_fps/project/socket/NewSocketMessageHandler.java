@@ -10,6 +10,8 @@ import org.json.simple.JSONObject;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketSession;
+import org.springframework.web.util.UriComponentsBuilder;
+
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -91,8 +93,6 @@ public class NewSocketMessageHandler implements WebSocketHandler {
 		public JSONObject onChannelMessage(ChannelMessageEvent event) {
 			return new JSONObject(Map.ofEntries(Map.entry("chat", Map.ofEntries(
 							entry("user", event.getUser().getName()),
-							entry("service", event.getMessageEvent().getCommandType()),
-							entry("messageRaw", event.getMessageEvent().getBadges()),
 							entry("message", event.getMessage()),
 							entry("firedAt", event.getFiredAt().getTimeInMillis())
 						))
@@ -109,11 +109,13 @@ public class NewSocketMessageHandler implements WebSocketHandler {
 
     @Override
     public Mono<Void> handle(WebSocketSession webSocketSession) {
-    	twichEvent.connectTwich();
-        return webSocketSession.send(intervalFlux
-          .map(webSocketSession::textMessage));
-          //.and(webSocketSession.receive()
-          //  .map(WebSocketMessage::getPayloadAsText).log());
+    	
+    	return twichEvent.connectTwich(webSocketSession)
+    			.send(intervalFlux
+		          .map(webSocketSession::textMessage));
+		          //.and(webSocketSession.receive()
+		          //  .map(WebSocketMessage::getPayloadAsText).log());
+
     }
 
 }
