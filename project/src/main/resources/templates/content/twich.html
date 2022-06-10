@@ -1,9 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta charset="UTF-8">
 <title>주폭도는 풀 수 있는 게임 ♥</title>
 <link rel="icon" type="image/x-icon" th:href=@{images/favicon.ico}>
+<link th:href="@{css/common.css}" rel="stylesheet" />
 <style>
 	span.chat_id:after {
     	content: " : ";
@@ -55,10 +56,21 @@
 	<div style="background-image: url('images/jululu_background_image.png'); 
 		background-repeat: no-repeat;
     	background-size: 100% 100%;position:absolute; top:0; bottom:0; right:0; left:0;">
-		<div id="chat_message_content" class="chat_content" style="width:500px; height:500px; 
-			writing-mode: horizontal-tb;overflow-y: hidden; overflow-x: hidden;
-			overflow-wrap: break-word;border: inset; border-color: darkviolet;">
+		<div class="top_button_wrapper">
 		
+		</div>
+		<div>
+			<div id="chat_message_content" class="chat_content" style="width:500px; height:500px; 
+				writing-mode: horizontal-tb;overflow-y: hidden; overflow-x: hidden;
+				overflow-wrap: break-word;border: inset; border-color: darkviolet;">
+		
+			</div>
+		</div>
+		<div class="bottom_button_wrapper">
+			<div class="top_show_hide_wrap">
+				<button class="top_show_hide" type="button"></button>
+			</div>
+			<div class="top_button_list"></div>
 		</div>
 	</div>
 </body>

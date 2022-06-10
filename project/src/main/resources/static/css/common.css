@@ -88,3 +88,39 @@ footer{
 	position: absolute;
     bottom: 0rem;
 }
+
+.arrow {
+  border: solid black;
+  border-width: 0 3px 3px 0;
+  display: inline-block;
+  padding: 3px;
+}
+
+.direction_up{
+  transform: rotate(-135deg);
+  -webkit-transform: rotate(-135deg);
+}
+.direction_up_right{
+  transform: rotate(-90deg);
+  -webkit-transform: rotate(-90deg);
+}
+.direction_right{
+  transform: rotate(-45deg);
+  -webkit-transform: rotate(-45deg);
+}
+.direction_down_right{
+  transform: rotate(-0deg);
+  -webkit-transform: rotate(-0deg);
+}
+.direction_down{
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+}
+
+
+
+.direction_left{
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
+}
+
