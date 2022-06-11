@@ -3,8 +3,14 @@
 /* 전체 컴포넌트에 적용될 크기 (html의 폰트사이즈 기준)*/
 html{
 	font-size: 13pt;
+	overflow: hidden;
 }
-
+body{
+	-webkit-user-select:none;
+	-moz-user-select:none;
+	-ms-user-select:none;
+	user-select:none
+}
 /* 가로 모드 강제 적용 */
 @media( orientation: portrait ){
   html {
@@ -90,10 +96,12 @@ footer{
 }
 
 .arrow {
-  border: solid black;
-  border-width: 0 3px 3px 0;
-  display: inline-block;
-  padding: 3px;
+    border: solid #0000004d;
+    border-width: 0 3px 3px 0;
+    padding: 3px;
+    background: none;
+    margin-top: 0.2%;
+    margin-bottom: 0.1%;
 }
 
 .direction_up{
@@ -122,5 +130,17 @@ footer{
 .direction_left{
   transform: rotate(45deg);
   -webkit-transform: rotate(45deg);
+}
+
+button{
+	border:none;
+	background: none;
+	font-family: serif;
+	font-weight: bold;
+	font-size: 1vmax;
+}
+
+input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
 }
 

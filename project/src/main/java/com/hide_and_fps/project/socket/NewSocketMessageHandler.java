@@ -10,8 +10,6 @@ import org.json.simple.JSONObject;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.socket.WebSocketHandler;
 import org.springframework.web.reactive.socket.WebSocketSession;
-import org.springframework.web.util.UriComponentsBuilder;
-
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -24,10 +22,10 @@ import static java.util.Map.entry;
 public class NewSocketMessageHandler implements WebSocketHandler {
 
     //private static final ObjectMapper json = new ObjectMapper();
-    
     private TwichEventMerged twichEvent = new TwichEventMerged() {
 		@Override
 		public JSONObject onDonation(DonationEvent event) {
+			System.out.println("Donation!!!!!!");
 			return new JSONObject(Map.ofEntries(Map.entry("donation", Map.ofEntries(
 					/* *
 					 * user : 도네를 한 유저
@@ -38,8 +36,6 @@ public class NewSocketMessageHandler implements WebSocketHandler {
 					 * channel : 도네이션의 채널 명
 					 * */
 						entry("user", event.getUser().getName()), 
-						entry("source", event.getSource()),
-						entry("currency", event.getCurrency()),
 						entry("amount", event.getAmount()),
 						entry("message", event.getMessage()),
 						entry("channel", event.getChannel().getName())
@@ -80,7 +76,7 @@ public class NewSocketMessageHandler implements WebSocketHandler {
 					 * */
 							entry("user", event.getUser().getName()),
 							entry("subscriptionPlan", event.getSubscriptionPlan()),
-							entry("message", event.getMessage()),
+							entry("message", event.getMessage().isPresent() ? event.getMessage().get() : ""),
 							entry("months", event.getMonths()),
 							entry("subStreak", event.getSubStreak()),
 							entry("flags", event.getFlags()),
@@ -109,7 +105,6 @@ public class NewSocketMessageHandler implements WebSocketHandler {
 
     @Override
     public Mono<Void> handle(WebSocketSession webSocketSession) {
-    	
     	return twichEvent.connectTwich(webSocketSession)
     			.send(intervalFlux
 		          .map(webSocketSession::textMessage));

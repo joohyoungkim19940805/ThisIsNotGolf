@@ -33,8 +33,7 @@ public class Bot {
         setBot();
 
         registerFeatures();
-        start();
-        
+        //start();
     }
     
     public Bot setBot() {
@@ -106,7 +105,7 @@ public class Bot {
         }
     }
 
-    private void start() {
+    public void start() {
         // Connect to all channels
         for (String channel : configuration.getChannels()) {
             twitchClient.getChat().joinChannel(channel);

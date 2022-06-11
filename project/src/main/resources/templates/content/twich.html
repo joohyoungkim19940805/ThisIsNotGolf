@@ -2,75 +2,346 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta charset="UTF-8">
-<title>주폭도는 풀 수 있는 게임 ♥</title>
+<title>주폭도는 풀 수 있는 문제 ♥</title>
 <link rel="icon" type="image/x-icon" th:href=@{images/favicon.ico}>
 <link th:href="@{css/common.css}" rel="stylesheet" />
 <style>
 	span.chat_id:after {
     	content: " : ";
 	}
+	.bottom_wrap_fadeout{
+		animation : fadeout 200ms linear forwards;
+	}
+	.bottom_wrap_fadein{
+		animation : fedein 200ms linear forwards;
+	}
+	@keyframes fadeout{
+		0%{height: 6vh;}
+		20%{height: 4.8vh;}
+		40%{height: 3.6vh;}
+		60%{height: 2.4vh;}
+		80%{height: 1.2vh;}
+		100%{height: 0vh; visibility: hidden;}
+	}
+	@keyframes fedein{
+		0%{height: 0vh;}
+		20%{height: 1.2vh;}
+		40%{height: 2.4vh;}
+		60%{height: 3.6vh;}
+		80%{height: 4.8vh;}
+		100%{height: 6vh;}
+	}
+	.bottom_button{
+		height: 65%;
+	    background-color: #772ce8;
+	    color: #fff;
+	    border-radius: 15%;
+	}
+	.bottom_button:hover{
+		color: #26ffbb;
+	}
+	.bottom_button_list{
+		text-align: -webkit-center;
+	    display: flex;
+	    justify-content: center;
+	    gap: 22vw;
+	    align-items: center;
+	}
+	.time_wrapper.not_timer_image{
+		background-color: #7546728c;
+	}	
+	.time_wrapper.not_timer_image span.time_separator:after{
+		content:" :";
+	}
+	.time_wrapper.not_timer_image span.time_separator_seconds:after{
+		content:" .";
+	}
+	.menu_component{
+		background-color: #ffffff26;
+		width: 45%;
+		text-align: -webkit-center;
+		text-align: center;
+		border-radius: 8%;
+	}
+	.menu_component button{
+		color: #0031ad;
+	}
 </style>
 <script type="text/javascript">
-	window.onload = () => {
-		chatContentArr = document.querySelector('#chat_message_content');
+	const randomColor = ['#ffffff','#fff5ee','#fffafa','#f8f8ff','#fffaf0','#f5f5f5','#f0f8ff','#f0ffff','#fdf5e6','#f5fffa','#ffefd5','#ffdab9','#faf0e6','#eee8aa','#ffe4e1','#ffe4b5','#ffdead','#d2b48c','#f5deb3','#fafad2','#ffffe0','#fff8dc','#faebd7','#f5f5dc','#fffacd','#fffff0','#f0e68c','#e6e6fa','#fff0f5','#ffe4c4','#ffebcd','#deb887','#cd853f','#00ced1','#00bfff','#7fffd4','#1e90ff','#00ffff','#f0fff0','#87cefa','#afeeee','#e0ffff','#add8e6','#b0c4de','#40e0d0','#48d1cc','#00ffff','#b0e0e6','#87ceeb','#4169e1','#ff00ff','#ff00ff','#c71585','#dc143c','#ff1493','#ffb6c1','#ff69b4','#ffc0cb','#dda0dd','#ee82ee','#d8bfd8','#da70d6','#a52a2a','#e9967a','#f08080','#cd5c5c','#ffa07a','#db7093','#f4a460','#fa8072','#ff6347','#ff4500','#ff0000','#b22222','#d2691e','#bc8f8f','#ff7f50','#ff8c00','#ffa500','#b8860b','#ffd700','#ffff00','#7fff00','#7cfc00','#00ff00','#32cd32','#00ff7f','#3cb371','#adff2f','#8fbc8f','#90ee90','#98fb98','#2e8b57','#00fa9a','#20b2aa','#66cdaa','#6b8e23','#bdb76b','#daa520'];
+	const getRandomColor = () => randomColor[Math.floor( Math.random() * (Math.floor(randomColor.length-1))) ];
+	const setting = {
+		chatYn : true,
+		timerYn : true,
+		backgroundImage : [`url('images/jululu_background_image_night.png')`, `url('images/jululu_background_image.png')`]
+	}
+	
+	window.addEventListener('load',() => {
 		
-		const webSocket = new WebSocket('ws://localhost:8079/room/twich');
-		webSocket.onopen = function () { //서버쪽이랑 연결된 순간 onopen 메서드 호출되고
-		    //console.log('서버와 웹소켓 연결 성공!');
+		chatContentArr = document.querySelector('#chat_message_content');
+	    timer = new Timer(document.querySelector('.time_wrapper'));
+	    timer.setNow();
+	    
+		const webSocket = new WebSocket(`ws://${location.host}/room/twich`);
+		webSocket.onopen = function () {
 		};
-	    webSocket.onmessage = function (event) { //서버쪽에서 메세지가 전달된 순간 onmessage가 실행된다.
+	    webSocket.onmessage = function (event) { 
 	        let data = JSON.parse(event.data);
-	        if(data.hasOwnProperty('chat')){
-	        	chatContentTemplate(data.chat).then(chatElement=>messageViewLoder(chatElement))
-	        								.then(chatWrapCount=>chatControl(chatWrapCount))
+	    	if(data.hasOwnProperty('chat')){
+	        	if(setting.chatYn){
+		        	chatContentTemplate(data.chat).then(chatElement=>messageViewLoder(chatElement))
+		        								.then(chatWrapCount=>chatControl(chatWrapCount))
+	        	}
+	        }else if(data.hasOwnProperty('subscription')){
+	        	console.log(data);
+	        }else if(data.hasOwnProperty('follow')){
+	        	console.log(data);	
+	        }else if(data.hasOwnProperty('donation')){
+	        	console.log(data);
 	        }
 	    };
-	}
-	var chatContentTemplate = ({message, user})=>{
-		return new Promise(resolve =>
-					setTimeout(resolve(
-										[Object.assign(document.createElement('span'), {className : 'chat_id', textContent : user}), 
-										Object.assign(document.createElement('span'),{className : 'chat_message', textContent : message})]
-										)),0);
-	}
-    function messageViewLoder(chatElement){
-    	return new Promise(resolve =>{
-	    	if(chatContentArr){
-				let div = document.createElement('div');
-				div.append(...chatElement);
-				chatContentArr.append(div);
-			}
-			return setTimeout(resolve(chatContentArr.childElementCount), 0);
-    	});
-	}
-    function chatControl(chatWrapCount){
-    	if(chatWrapCount >= 200){
-    		chatContentArr.removeChild(chatContentArr.firstElementChild);
+
+    	let chatContentTemplate = ({message, user}) => {
+			return new Promise(resolve =>
+						setTimeout(resolve(
+											[Object.assign(document.createElement('span'), {className : 'chat_id', textContent : user}), 
+											Object.assign(document.createElement('span'),{className : 'chat_message', textContent : message})]
+											)), 1);
+		}
+	    let messageViewLoder = (chatElement) => {
+	    	return new Promise(resolve =>{
+		    	if(chatContentArr){
+					let div = document.createElement('div');
+					chatElement.forEach(e=>e.style.color = getRandomColor())
+					div.append(...chatElement);
+					chatContentArr.append(div);
+				}
+				return setTimeout(resolve(chatContentArr.childElementCount), 1);
+	    	});
+		}
+	    let chatControl = (chatWrapCount) => {
+	    	if(chatWrapCount >= 200){
+	    		chatContentArr.removeChild(chatContentArr.firstElementChild);
+	    	}
+	    	chatContentArr.scrollTop = chatContentArr.scrollHeight;
+	    }
+	});
+
+    class Timer{
+    	constructor(timerElement){
+    		this.second = Object.freeze(1000);
+    		this.minute = Object.freeze(this.second * 60);
+    		this.hour = Object.freeze(this.minute * 60);
+    		this.timerInterval;
+    		this.timerElement = timerElement;
+    		this.isRun = false;
     	}
-    	chatContentArr.scrollTop = chatContentArr.scrollHeight;
+    	
+    	setCoustmTimer(inputMinute){
+    		if(minute == 0){
+    			modal_alert(['시간을 선택해주세요(분 단위 입력)']);
+    			return;
+    		}
+    		this.clear();
+    		this.isRun = true;
+    		this.timerElement.style.display = 'flex';
+    		let endTime = (Number(inputMinute) * this.minute) + new Date().getTime();
+    		this.timerInterval = setInterval(()=>{
+	    		let ms = endTime - new Date().getTime();
+			    if(ms <= 0){
+			    	this.setTimerDefult();
+			    	modal_alert(['타이머 종료']);
+			    	return false;
+			    }
+	    		this.timerElement.querySelector('.hour').textContent = `${Math.floor( ms / this.hour )}`.padStart(2,'0');
+			    this.timerElement.querySelector('.minute').textContent = `${Math.floor( ms % this.hour / this.minute )}`.padStart(2,'0');
+			    this.timerElement.querySelector('.seconds').textContent = `${Math.floor( ms % this.minute / this.second )}`.padStart(2,'0');
+			    this.timerElement.querySelector('.millisecond').textContent = `${ ms % this.second }`.padStart(2,'0').slice(0, 2);
+    		},50);
+    	}
+    	setNow(){
+    		this.clear();
+    		this.isRun= true;
+    		this.timerElement.style.display = 'flex';
+    		this.timerInterval = setInterval(()=>{
+	    		let now = new Date()
+	    		this.timerElement.querySelector('.hour').textContent = `${ now.getHours() }`.padStart(2,'0');
+	    		this.timerElement.querySelector('.minute').textContent = `${ now.getMinutes() }`.padStart(2,'0');
+	    		this.timerElement.querySelector('.seconds').textContent = `${ now.getSeconds() }`.padStart(2,'0');
+	    		this.timerElement.querySelector('.millisecond').textContent = `${ Math.floor(now.getMilliseconds()) }`.padStart(2,'0').slice(0, 2);
+    		}, 50);
+    	}
+    	clear(){
+    		this.isRun = false;
+    		clearInterval(this.timerInterval)
+    		this.timerElement.style.display = 'none';
+
+    		return this.timerInterval;
+    	}
+    	toggle(){
+    		this.isRun = !this.isRun;
+    		if(this.isRun){
+    			this.setNow();
+    		}else{
+    			this.clear();
+    		}
+    	}
+    	setTimerDefult(){
+    		clearInterval(this.timerInterval)
+    		this.timerElement.querySelector('.hour').textContent = '00'
+    		this.timerElement.querySelector('.minute').textContent = '00'
+    		this.timerElement.querySelector('.seconds').textContent = '00'
+    		this.timerElement.querySelector('.millisecond').textContent = '00'
+    	}
+    	
     }
-	
+    
+    function modal_alert(text){
+    	let modalAlert = document.querySelector('#modal.type_alert');
+    	if(modalAlert.style.display == "none"){
+    		modalAlert.querySelector('.modal_content').append(...text.map(e => Object.assign( document.createElement('div'), {textContent:e}) ));
+    		modalAlert.style.display = 'flex';
+    	}else{
+    		//modalAlert.style.display = 'none'
+   			//modalAlert.querySelectorAll('.modal_content div').forEach(e=>e.remove())
+    	}
+    }
 </script>
 </head>
 <body style="height: 100%; min-height: 100%;">
-	<div style="background-image: url('images/jululu_background_image.png'); 
+	<div id="all_content_wrap" style="background-image: url('images/jululu_background_image_night.png'); 
 		background-repeat: no-repeat;
-    	background-size: 100% 100%;position:absolute; top:0; bottom:0; right:0; left:0;">
-		<div class="top_button_wrapper">
-		
-		</div>
-		<div>
-			<div id="chat_message_content" class="chat_content" style="width:500px; height:500px; 
-				writing-mode: horizontal-tb;overflow-y: hidden; overflow-x: hidden;
-				overflow-wrap: break-word;border: inset; border-color: darkviolet;">
-		
-			</div>
-		</div>
-		<div class="bottom_button_wrapper">
+    	background-size: 100% 100%;position:absolute; top:0; bottom:0; right:0; left:0;
+    	display: grid; align-content: space-around;
+    	justify-content: end;">
+		<div class="top_button_wrapper" style="text-align: -webkit-center; position: absolute; top: 0; width: 100%;">
 			<div class="top_show_hide_wrap">
 				<button class="top_show_hide" type="button"></button>
 			</div>
 			<div class="top_button_list"></div>
+		</div>
+		<div class="time_wrapper" style="position: absolute;display: flex;bottom: 11.4vh;right: 21.8vw;gap: 1.2vw;font-size: 3vmax;color: white;align-items: flex-end;">
+            <span class="hour time_separator">00</span>
+            <span class="minute time_separator">00</span>
+            <span class="seconds time_separator_seconds">00</span>
+            <span class="millisecond" style="font-size: 2.3vmax;">00</span>
+        </div>
+		<main class="maim_content">
+			<div id="chat_message_content" class="chat_content" style="width:22vw; height:56vh; margin-right: 7vw;
+				overflow-y: hidden; overflow-x: hidden; overflow-wrap: break-word;
+				border: none; ">
+		
+			</div>
+		</main>
+		<div class="bottom_button_wrapper" style="text-align: -webkit-center; position: absolute; bottom: 0; width: 100%;">
+			<div class="bottom_show_hide_wrap" onclick="this.nextElementSibling.classList.value.includes('bottom_wrap_fadeout') ? 
+															this.nextElementSibling.classList.replace('bottom_wrap_fadeout','bottom_wrap_fadein') : 
+															this.nextElementSibling.classList.replace('bottom_wrap_fadein','bottom_wrap_fadeout') ; 
+														this.children[0].classList.toggle('direction_down');"
+												style="display: flex; justify-content: center;
+													  align-items: flex-start; background-color: #fff5f524;
+													  align-content: stretch; border-top-left-radius: 100%;
+													  border-top-right-radius: 100%;
+													  width: 100%;">
+				<i class="bottom_show_hide arrow direction_up"></i>
+			</div>
+			<div class="bottom_button_list bottom_wrap_fadein">
+				<button type="button" class="bottom_button">게임 선택</button>
+				<button type="button" class="bottom_button">미구현2</button>
+				<button type="button" class="bottom_button" onclick="document.querySelector('#timer_setting_layer').style.display='flex'">타이머 설정</button>
+				<button type="button" class="bottom_button" onclick="document.querySelector('#option_layer').style.display='flex'">설정</button>
+			</div>
+		</div>
+		<div id="option_layer" style="position: absolute;width: 100%;height: 100%;display: none;background-color: rgba(240, 248, 255, 0.29);opacity: 1;justify-content: center;align-items: center; top: 0; left: 0;">
+			<script>
+				document.querySelector('#option_layer').onclick = function(e) {
+					return e.path[0] === this ? this.style.display = 'none' : false
+				}
+			</script>
+			<div class="option_menu" style="width: 13%;height: 33%;display: grid;background-color: #ffbad6d1;align-items: center;align-content: space-evenly;justify-items: center;border-radius: 100%;">
+			    <div style="background-color: #ffffff26;width: 45%;text-align: -webkit-center;text-align: center;border-radius: 18%;">
+			    	<button type="button" class="option_menu_button" onclick="chatOnOff(this);" style="color: #0031ad;">채팅 ON</button>
+			    	<script>
+			    		function chatOnOff(obj){
+			    			obj.classList.toggle('OFF');
+			    			if(obj.classList.value.includes('OFF')){
+			    				obj.textContent = '채팅 OFF';
+			    				chatContentArr.style.display='none';
+			    			}else{
+			    				obj.textContent = '채팅 ON';
+			    				chatContentArr.style.display='block';
+			    			}
+			    			setting.chatYn = !setting.chatYn;
+			    			
+			    		}
+			    	</script>
+			    </div>
+			    <div class="menu_component">
+			    	<button type="button" class="option_menu_button" onclick="timer.toggle(); timer.isRun ? this.textContent='시계 ON' : this.textContent='시계 OFF'">시계 ON</button>
+			    </div>
+			    <div class="menu_component">
+			    	<button type="button" class="option_menu_button" background_image_index="0" onclick="backgroundImageChange(this);">배경 1</button>
+			    	<script>
+			    		function backgroundImageChange(obj){
+			    			let backgroundImageIndex = Number(obj.attributes.background_image_index.value) + 1;
+			    			backgroundImageIndex = setting.backgroundImage.some((e,i)=>i==backgroundImageIndex) ? backgroundImageIndex : 0
+			    			obj.attributes.background_image_index.value = backgroundImageIndex;
+			    			document.querySelector('#all_content_wrap').style.backgroundImage = setting.backgroundImage[backgroundImageIndex];
+			    			obj.textContent = `배경 ${backgroundImageIndex + 1}`;
+			    			if(backgroundImageIndex != 0){
+			    				timer.timerElement.classList.add('not_timer_image')
+			    			}else{
+			    				timer.timerElement.classList.remove('not_timer_image')
+			    			}
+			    		}
+			    	</script>
+			    </div>
+			    <div class="menu_component">
+			    	<button type="button" class="option_menu_button">미구현3</button>
+			    </div>
+			    <div class="menu_component">
+			    	<button type="button" class="option_menu_button">미구현4</button>
+			    </div>
+			</div>
+		</div>
+	</div>
+	<div id="timer_setting_layer" style="position: absolute;width: 100%;height: 100%;display: none;background-color: rgba(240, 248, 255, 0.29);opacity: 1;justify-content: center;align-items: center; top: 0; left: 0;">
+		<script>
+			document.querySelector('#timer_setting_layer').onclick = function(e) {
+				return e.path[0] === this ? this.style.display = 'none' : false
+			}
+		</script>
+		<div class="timer_setting_menu" style="width: 33%;height: 33%;display: grid;background-color: #81efe7d1;align-items: center;align-content: space-evenly;justify-items: center;border-radius: 10%;">
+			<div class="timer_setting_input_block" style="width: 100%;text-align: center;text-align: -webkit-center;">
+				<input type="number" min="1" placeholder="분 단위" step="0.01" style="width: 50%;" onkeyup="event.key==='Enter' ? timer.setCoustmTimer(this.value) : false">
+			</div>
+			<div class="timer_setting_menu_wrap" style="display: flex;justify-content: space-around;width: 100%;">
+				<div class="menu_component" style="width:auto;">
+		    		<button type="button" class="option_menu_button" onclick="timer.setCoustmTimer(this.offsetParent.querySelector('.timer_setting_input_block input').value);">타이머 시작</button>
+				</div>
+				<div class="menu_component" style="width:auto;">
+		    		<button type="button" class="option_menu_button" onclick="timer.setTimerDefult();">타이머 초기화</button>
+				</div>
+				<div class="menu_component" style="width:auto;">
+		    		<button type="button" class="option_menu_button" onclick="timer.setNow();">시계로 변경</button>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div id="modal" class="type_alert" style="position: absolute; width: 100%; height: 100%; display: none; opacity: 1; justify-content: center; align-items: flex-start; top: 0px; left: 0px; padding-top: 5%; background: none;">
+		<script>
+			document.querySelector('#modal.type_alert').onclick = function(e) {
+				if(e.path[0] === this){
+					this.style.display = 'none'
+					this.querySelectorAll('.modal_content div').forEach(e=>e.remove())
+				}else{
+					return;
+				}
+			}
+		</script>
+		<div class="modal_content" style="background-color: azure;width: auto;height: auto;display: flex;justify-content: center;align-items: center;border-radius: 1vmax;font-family: monospace;font-weight: bold;flex-direction: column-reverse;font-size: 1vmax;padding: 1%;">
+			<button style="margin-top: 5%;background-color: #9da3a647;color: black;border-radius: 1vmax;font-family: monospace;"
+					onclick="this.offsetParent.style.display='none'; this.parentElement.querySelectorAll('div').forEach(e=>e.remove())">확인</button>
 		</div>
 	</div>
 </body>

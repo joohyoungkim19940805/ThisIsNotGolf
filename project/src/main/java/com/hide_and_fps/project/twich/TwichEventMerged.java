@@ -2,9 +2,9 @@ package com.hide_and_fps.project.twich;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.json.simple.JSONObject;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.reactive.socket.WebSocketSession;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -12,18 +12,16 @@ import com.github.twitch4j.chat.events.channel.ChannelMessageEvent;
 import com.github.twitch4j.chat.events.channel.DonationEvent;
 import com.github.twitch4j.chat.events.channel.FollowEvent;
 import com.github.twitch4j.chat.events.channel.SubscriptionEvent;
-
 public abstract class TwichEventMerged extends Bot {
 	
 	private boolean isRun = false;
-	
 	public TwichEventMerged() {
 		super();
 	}
 	
 	public WebSocketSession connectTwich(WebSocketSession webSocketSession) {
-		
 		if(isRun == false) {
+			super.start();
 			ChannelNotificationOnDonation();
 			ChannelNotificationOnFollow();
 			ChannelNotificationOnSubscription();
@@ -31,13 +29,14 @@ public abstract class TwichEventMerged extends Bot {
 			
 			isRun = true;
 		}else if(webSocketSession.getHandshakeInfo().getUri().getPath().equals("/room/newChannel")){
-			super.setBot().newSetClient(UriComponentsBuilder.fromUri(webSocketSession.getHandshakeInfo().getUri()) .build().getQueryParams().get("channel").get(0));
+			super.setBot().newSetClient(UriComponentsBuilder.fromUri(webSocketSession.getHandshakeInfo().getUri()).build().getQueryParams().get("channel").get(0));
 		}
-		
+
 		return webSocketSession;
 	}
 	
 	public final Queue<JSONObject> messageRoom = new ConcurrentLinkedQueue<>();
+
 	
     /** 도네이션 이벤트 등록
      * Register events of this class with the EventManager/EventHandler
