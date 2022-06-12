@@ -5,6 +5,11 @@
 <title>주폭도는 풀 수 있는 문제 ♥</title>
 <link rel="icon" type="image/x-icon" th:href=@{images/favicon.ico}>
 <link th:href="@{css/common.css}" rel="stylesheet" />
+<script type="text/javascript" th:src="@{js/client/ModalLoader.js}"></script>
+<script type="text/javascript" th:src="@{js/client/GameSettingView.js}"></script>
+<script src="https://cdn.babylonjs.com/babylon.js"></script>
+<script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
+<script type="text/javascript" th:src="@{js/client/meshwriter.min.js}"></script>
 <style>
 	span.chat_id:after {
     	content: " : ";
@@ -58,7 +63,7 @@
 	}
 	.menu_component{
 		background-color: #ffffff26;
-		width: 45%;
+		width: auto;
 		text-align: -webkit-center;
 		text-align: center;
 		border-radius: 8%;
@@ -73,11 +78,30 @@
 	const setting = {
 		chatYn : true,
 		timerYn : true,
-		backgroundImage : [`url('images/jululu_background_image_night.png')`, `url('images/jululu_background_image.png')`]
+		backgroundImage : [`url('images/jululu_background_image_night.png')`, `url('images/jululu_background_image.png')`],
+		timerEnd : false,
+		gameSelectKey : -1,
+		devQuestions : {
+			questionsList : [],
+			pageMax : 1,
+			page : 1,
+			type : 0,
+		},
+		cottonQuestions : {
+			questionsList : [],
+			pageMax : 1,
+			page : 1,
+			type : 1,
+		},
+		twentyHills :{
+			questionsCount : 0,
+			answer : '',
+			type : 2,
+		}
 	}
-	
 	window.addEventListener('load',() => {
-		
+		modalLoader = new ModalLoader();
+		modalLoader.setModalAlert();
 		chatContentArr = document.querySelector('#chat_message_content');
 	    timer = new Timer(document.querySelector('.time_wrapper'));
 	    timer.setNow();
@@ -138,9 +162,9 @@
     	}
     	
     	setCoustmTimer(inputMinute){
-    		if(minute == 0){
-    			modal_alert(['시간을 선택해주세요(분 단위 입력)']);
-    			return;
+    		if(inputMinute == 0){
+    			modalLoader.createModalAlertText(['시간을 선택해주세요(분 단위 입력)']);
+    			return false;
     		}
     		this.clear();
     		this.isRun = true;
@@ -150,33 +174,34 @@
 	    		let ms = endTime - new Date().getTime();
 			    if(ms <= 0){
 			    	this.setTimerDefult();
-			    	modal_alert(['타이머 종료']);
+			    	modalLoader.createModalAlertText(['타이머 종료']);
+			    	setting.timerEnd = true;
 			    	return false;
 			    }
 	    		this.timerElement.querySelector('.hour').textContent = `${Math.floor( ms / this.hour )}`.padStart(2,'0');
 			    this.timerElement.querySelector('.minute').textContent = `${Math.floor( ms % this.hour / this.minute )}`.padStart(2,'0');
 			    this.timerElement.querySelector('.seconds').textContent = `${Math.floor( ms % this.minute / this.second )}`.padStart(2,'0');
 			    this.timerElement.querySelector('.millisecond').textContent = `${ ms % this.second }`.padStart(2,'0').slice(0, 2);
-    		},50);
+    		},60);
     	}
     	setNow(){
     		this.clear();
     		this.isRun= true;
     		this.timerElement.style.display = 'flex';
     		this.timerInterval = setInterval(()=>{
+    			setting.timerEnd = false;
 	    		let now = new Date()
 	    		this.timerElement.querySelector('.hour').textContent = `${ now.getHours() }`.padStart(2,'0');
 	    		this.timerElement.querySelector('.minute').textContent = `${ now.getMinutes() }`.padStart(2,'0');
 	    		this.timerElement.querySelector('.seconds').textContent = `${ now.getSeconds() }`.padStart(2,'0');
 	    		this.timerElement.querySelector('.millisecond').textContent = `${ Math.floor(now.getMilliseconds()) }`.padStart(2,'0').slice(0, 2);
-    		}, 50);
+    		}, 60);
     	}
     	clear(){
     		this.isRun = false;
     		clearInterval(this.timerInterval)
     		this.timerElement.style.display = 'none';
-
-    		return this.timerInterval;
+    		setting.timerEnd = false;
     	}
     	toggle(){
     		this.isRun = !this.isRun;
@@ -192,19 +217,9 @@
     		this.timerElement.querySelector('.minute').textContent = '00'
     		this.timerElement.querySelector('.seconds').textContent = '00'
     		this.timerElement.querySelector('.millisecond').textContent = '00'
+    		setting.timerEnd = false;
     	}
     	
-    }
-    
-    function modal_alert(text){
-    	let modalAlert = document.querySelector('#modal.type_alert');
-    	if(modalAlert.style.display == "none"){
-    		modalAlert.querySelector('.modal_content').append(...text.map(e => Object.assign( document.createElement('div'), {textContent:e}) ));
-    		modalAlert.style.display = 'flex';
-    	}else{
-    		//modalAlert.style.display = 'none'
-   			//modalAlert.querySelectorAll('.modal_content div').forEach(e=>e.remove())
-    	}
     }
 </script>
 </head>
@@ -214,12 +229,14 @@
     	background-size: 100% 100%;position:absolute; top:0; bottom:0; right:0; left:0;
     	display: grid; align-content: space-around;
     	justify-content: end;">
+    	<!-- 
 		<div class="top_button_wrapper" style="text-align: -webkit-center; position: absolute; top: 0; width: 100%;">
 			<div class="top_show_hide_wrap">
 				<button class="top_show_hide" type="button"></button>
 			</div>
 			<div class="top_button_list"></div>
 		</div>
+		-->
 		<div class="time_wrapper" style="position: absolute;display: flex;bottom: 11.4vh;right: 21.8vw;gap: 1.2vw;font-size: 3vmax;color: white;align-items: flex-end;">
             <span class="hour time_separator">00</span>
             <span class="minute time_separator">00</span>
@@ -246,22 +263,24 @@
 				<i class="bottom_show_hide arrow direction_up"></i>
 			</div>
 			<div class="bottom_button_list bottom_wrap_fadein">
-				<button type="button" class="bottom_button">게임 선택</button>
-				<button type="button" class="bottom_button">미구현2</button>
+				<button type="button" class="bottom_button" onclick="startGame();">게임시작</button>
+				<button type="button" class="bottom_button" onclick="document.querySelector('#game_select_layer').style.display='flex'">게임 선택</button>
 				<button type="button" class="bottom_button" onclick="document.querySelector('#timer_setting_layer').style.display='flex'">타이머 설정</button>
 				<button type="button" class="bottom_button" onclick="document.querySelector('#option_layer').style.display='flex'">설정</button>
 			</div>
 		</div>
-		<div id="option_layer" style="position: absolute;width: 100%;height: 100%;display: none;background-color: rgba(240, 248, 255, 0.29);opacity: 1;justify-content: center;align-items: center; top: 0; left: 0;">
+		
+		<!-- layer -->
+		<div id="option_layer" style="position: absolute;width: 100%;height: 100%;display: none;background-color: rgba(240, 248, 255, 0.29);opacity: 1;justify-content: center;align-items: center; top: 0; left: 0; z-index:2;">
 			<script>
 				document.querySelector('#option_layer').onclick = function(e) {
 					return e.path[0] === this ? this.style.display = 'none' : false
 				}
 			</script>
 			<div class="option_menu" style="width: 13%;height: 33%;display: grid;background-color: #ffbad6d1;align-items: center;align-content: space-evenly;justify-items: center;border-radius: 100%;">
-			    <div style="background-color: #ffffff26;width: 45%;text-align: -webkit-center;text-align: center;border-radius: 18%;">
+			    <div class="menu_component">
 			    	<button type="button" class="option_menu_button" onclick="chatOnOff(this);" style="color: #0031ad;">채팅 ON</button>
-			    	<script>
+			    	<script type="text/javascript">
 			    		function chatOnOff(obj){
 			    			obj.classList.toggle('OFF');
 			    			if(obj.classList.value.includes('OFF')){
@@ -281,7 +300,7 @@
 			    </div>
 			    <div class="menu_component">
 			    	<button type="button" class="option_menu_button" background_image_index="0" onclick="backgroundImageChange(this);">배경 1</button>
-			    	<script>
+			    	<script type="text/javascript">
 			    		function backgroundImageChange(obj){
 			    			let backgroundImageIndex = Number(obj.attributes.background_image_index.value) + 1;
 			    			backgroundImageIndex = setting.backgroundImage.some((e,i)=>i==backgroundImageIndex) ? backgroundImageIndex : 0
@@ -304,45 +323,276 @@
 			    </div>
 			</div>
 		</div>
-	</div>
-	<div id="timer_setting_layer" style="position: absolute;width: 100%;height: 100%;display: none;background-color: rgba(240, 248, 255, 0.29);opacity: 1;justify-content: center;align-items: center; top: 0; left: 0;">
-		<script>
-			document.querySelector('#timer_setting_layer').onclick = function(e) {
-				return e.path[0] === this ? this.style.display = 'none' : false
-			}
-		</script>
-		<div class="timer_setting_menu" style="width: 33%;height: 33%;display: grid;background-color: #81efe7d1;align-items: center;align-content: space-evenly;justify-items: center;border-radius: 10%;">
-			<div class="timer_setting_input_block" style="width: 100%;text-align: center;text-align: -webkit-center;">
-				<input type="number" min="1" placeholder="분 단위" step="0.01" style="width: 50%;" onkeyup="event.key==='Enter' ? timer.setCoustmTimer(this.value) : false">
-			</div>
-			<div class="timer_setting_menu_wrap" style="display: flex;justify-content: space-around;width: 100%;">
-				<div class="menu_component" style="width:auto;">
-		    		<button type="button" class="option_menu_button" onclick="timer.setCoustmTimer(this.offsetParent.querySelector('.timer_setting_input_block input').value);">타이머 시작</button>
-				</div>
-				<div class="menu_component" style="width:auto;">
-		    		<button type="button" class="option_menu_button" onclick="timer.setTimerDefult();">타이머 초기화</button>
-				</div>
-				<div class="menu_component" style="width:auto;">
-		    		<button type="button" class="option_menu_button" onclick="timer.setNow();">시계로 변경</button>
-				</div>
-			</div>
-		</div>
-	</div>
-	<div id="modal" class="type_alert" style="position: absolute; width: 100%; height: 100%; display: none; opacity: 1; justify-content: center; align-items: flex-start; top: 0px; left: 0px; padding-top: 5%; background: none;">
-		<script>
-			document.querySelector('#modal.type_alert').onclick = function(e) {
-				if(e.path[0] === this){
-					this.style.display = 'none'
-					this.querySelectorAll('.modal_content div').forEach(e=>e.remove())
-				}else{
-					return;
+		
+		<div id="timer_setting_layer" style="position: absolute;width: 100%;height: 100%;display: none;background-color: rgba(240, 248, 255, 0.29);opacity: 1;justify-content: center;align-items: center; top: 0; left: 0; z-index:2;">
+			<script type="text/javascript">
+				document.querySelector('#timer_setting_layer').onclick = function(e) {
+					return e.path[0] === this ? this.style.display = 'none' : false
 				}
-			}
-		</script>
-		<div class="modal_content" style="background-color: azure;width: auto;height: auto;display: flex;justify-content: center;align-items: center;border-radius: 1vmax;font-family: monospace;font-weight: bold;flex-direction: column-reverse;font-size: 1vmax;padding: 1%;">
-			<button style="margin-top: 5%;background-color: #9da3a647;color: black;border-radius: 1vmax;font-family: monospace;"
-					onclick="this.offsetParent.style.display='none'; this.parentElement.querySelectorAll('div').forEach(e=>e.remove())">확인</button>
+			</script>
+			<div class="timer_setting_menu" style="width: 33%;height: 33%;display: grid;background-color: #81efe7d1;align-items: center;align-content: space-evenly;justify-items: center;border-radius: 10%;">
+				<div class="timer_setting_input_block" style="width: 100%;text-align: center;text-align: -webkit-center;">
+					<input type="number" min="1" placeholder="분 단위" step="0.01" style="width: 50%;">
+					<script type="text/javascript">
+						document.querySelector('.timer_setting_input_block > input').onkeyup = function(e){
+							if(e.key==='Enter'){
+								this.blur();
+								timer.setCoustmTimer(this.value);
+							}else{
+								return false; 
+							}
+						}
+					</script>
+				</div>
+				<div class="timer_setting_menu_wrap" style="display: flex;justify-content: space-around;width: 100%;">
+					<div class="menu_component" style="width:auto;">
+			    		<button type="button" class="option_menu_button" onclick="timer.setCoustmTimer(this.offsetParent.querySelector('.timer_setting_input_block input').value);">타이머 시작</button>>
+					</div>
+					<div class="menu_component" style="width:auto;">
+			    		<button type="button" class="option_menu_button" onclick="timer.setTimerDefult();">타이머 초기화</button>
+					</div>
+					<div class="menu_component" style="width:auto;">
+			    		<button type="button" class="option_menu_button" onclick="timer.setNow();">시계로 변경</button>
+					</div>
+				</div>
+			</div>
 		</div>
+		
+		<div id="game_select_layer" style="position: absolute;width: 100%;height: 100%;display: none;background-color: rgba(240, 248, 255, 0.29);opacity: 1;justify-content: center;align-items: center; top: 0; left: 0; z-index:2;">
+			<script type="text/javascript">
+				document.querySelector('#game_select_layer').onclick = function(e) {
+					return e.path[0] === this ? this.style.display = 'none' : false
+				}
+			</script>
+			<div class="game_select_menu" style="width: 22%;height: 49%;display: grid;background-color: #db5dffde;align-items: center;align-content: space-evenly;justify-items: center;border-radius: 10%;">
+				<div class="menu_component" style="width:auto;">
+		    		<button type="button" class="option_menu_button" onclick="setting.gameSelectKey='devQuestions';gameSelectEvent(this)">주폭도는 풀 수 있는 개발자의 10선 문제</button>
+				</div>
+				<div class="menu_component" style="width:auto;">
+		    		<button type="button" class="option_menu_button" onclick="setting.gameSelectKey='cottonQuestions';gameSelectEvent(this)">르르땅이 선택하는 이심전심 문제풀이</button>
+				</div>
+				<div class="menu_component" style="width:auto;">
+		    		<button type="button" class="option_menu_button" onclick="setting.gameSelectKey='twentyHills';gameSelectEvent(this)">주폭도와 함께하는 온라인 스무고개</button>
+				</div>
+			</div>
+			<script type="text/javascript">
+				function gameSelectEvent(obj){
+					if(setting.gameSelectType == - 1){
+						modalLoader.createModalAlertText(['게임을 선택해주세요.']);
+						return;
+					}
+					obj.offsetParent.style.display = 'none';
+					//setting[gameSelectKey];
+					document.querySelector('#cotton_questions').style.display='grid';
+					//cottonQuestions
+				}
+			</script>
+		</div>
+		
+		<div id="cotton_questions" style="position: absolute;width: 100%;height: 100%;display: none;background-color: rgba(240, 248, 255, 0.29);opacity: 1;justify-content: center;align-items: center;top: 0px;left: 0px;z-index: 2;align-content: space-between;padding-top: 5%;">
+			<div class="cotton_questions_wrapper" style="width: 41vw;display: grid;gap: 2%;">
+				<a href="javascript:void(0);" style="padding-left: 96%;font-size: 2vmax;" onclick="this.offsetParent.style.display='none';">
+				X
+				</a>
+				<div class="cotton_questions_content" style="display: grid;width: 100%;text-align: center;text-align: -webkit-center;gap: 5%; height: 47vh;">
+					<textarea id="story" name="story" rows="13" cols="37" placeholder="문제 내용 (한줄 당 37글자 엔터로 줄바꿈 된 기준 최대 20라인)" style="font-size: 1.1vmax;font-weight: bold;" maxlength="740"></textarea>
+					<input type="text" min="1" placeholder="정답 내용" step="0.01" style="width: 50%;margin-left: 48%;">
+				</div>
+				<div class="cotton_questions_button_wrapper" style="display: flex; justify-content: space-between;">
+					<div class="questions_cancel_wrapper" style="display: flex; gap: 28%;">
+			    		<button type="button" class="bottom_button" onclick="" style="height:100%">이 문제 초기화</button>
+			    		<button type="button" class="bottom_button" onclick="" style="height:100%">전체 문제 초기화</button>
+					</div>
+					<div class="questions_regist_wrapper" style="display: flex;">
+			    		<button type="button" class="bottom_button" onclick="" style="height:100%">등록하기</button>
+					</div>
+				</div>
+				<div class="cotton_questions_paging" style="display: flex;justify-content: space-around;font-size: 3vmax;">
+					<button type="button" class="" style="font-size: 3vmax; cursor: pointer;">
+						&lt;
+					</button>
+					<div style="display: flex;gap: 15%;justify-content: center;"><span class="cotton_questions_page">01</span><i>/</i><span class="cotton_questions_max_page">01</span></div>
+					<button type="button" class="" style="font-size: 3vmax; cursor: pointer;">
+						&gt;
+					</button>
+				</div>
+			</div>
+		</div>
+		<!-- /layer -->
+
 	</div>
+	<canvas id="renderCanvas" style="touch-action: none; outline: none; width: 60%; height: 60%;" tabindex="1">
+    </canvas>
+   	<script type="text/javascript">
+	    var rgbTransForm = (rgb = [0,0,0]) => rgb.map(e=>e/256);
+	    
+        const canvas = document.getElementById("renderCanvas");
+
+        const engine = new BABYLON.Engine(canvas, true);
+        
+        var clickEvt = false;
+		const createScene = function() {
+	        //공간 선언
+	        const scene = new BABYLON.Scene(engine);
+	        scene.autoClear = false
+	        //공간 배경 색상 설정
+	        scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
+	        
+	        //카메라의 3차원 위치 설정
+	        const alpha =  Math.PI/-2;
+	        const beta = Math.PI/3;
+	        const radius = 17;
+	        const target = new BABYLON.Vector3(0, 5, 5);
+	            
+	        //카메라의 초기 위치 셋팅
+	        const camera = new BABYLON.ArcRotateCamera("Camera", alpha, beta, radius, target, scene);
+	        camera.attachControl(canvas, true);
+	        camera.setTarget(BABYLON.Vector3.Zero());
+	        //광원 생성
+	        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
+	        
+	        var legalPad = BABYLON.SceneLoader.ImportMeshAsync(null, "/model/","LegalPad_6.glb")//.then(e=>e.meshes[0].position.x = 15);
+
+	        //한줄 37글자 20라인까지
+	        var text = ['일이삼사오육칠팔구십일이삼사오육칠팔구십일이삼사오육칠팔구십',
+	        			'1. 6월 12일',
+		        		'2. 6월 10일',
+		        		'3. 6월 11일',
+		        		'4. 6월 1일',
+		        		'5. 6월 2일',]
+
+	        legalPad.then(pad=>{
+	        	let heightLine = 190;
+       			let index = 2
+       			text.forEach((e,i)=>{
+       				heightLine = heightLine + 18
+        			var padDynamicTexture = new BABYLON.DynamicTexture("PadDynamicTexture", {width:1032, height:516}, scene);
+        			padDynamicTexture.getContext();
+       				padDynamicTexture.drawText(e, 430, heightLine, "bold 15px comic", "#000000", "transparent", false, true);
+        			var mat = new BABYLON.StandardMaterial("Mat", scene);
+    		        mat.diffuseTexture = padDynamicTexture;
+    		        mat.diffuseTexture.hasAlpha = true;
+    		        pad.meshes[index].material = mat
+    		        //console.log(pad.meshes[index].scaling);
+    		        index++;
+       			});
+	        });
+	    	var font = "bold 100px monospace";
+	    	
+	        var groundWidth = 4;
+	        var groundHeight = 2;
+	        
+	        var groundNextText = BABYLON.MeshBuilder.CreateGround("next", {width: groundWidth, height: groundHeight, subdivisions: 25}, scene);
+	        var textureNextText = new BABYLON.DynamicTexture("dynamic texture", {width:256, height:128}, scene);
+	        textureNextText.getContext();
+	        var materialNextText = new BABYLON.StandardMaterial("Mat", scene);
+	        materialNextText.diffuseTexture = textureNextText;
+	        groundNextText.material = materialNextText;
+	        textureNextText.drawText("Next", 25, 100, font, "black", "white", true, true);
+	        groundNextText.position.y = 0.5;
+	        groundNextText.position.x = -6;
+	        groundNextText.position.z = -5;
+	        groundNextText.visibility = 1
+	        
+	        var groundPrevText = BABYLON.MeshBuilder.CreateGround("prev", {width: groundWidth, height: groundHeight, subdivisions: 25}, scene);;
+	        var texturePrevText = new BABYLON.DynamicTexture("dynamic texture", {width:256, height:128}, scene);
+	        texturePrevText.getContext();
+	        var materialPrevText = new BABYLON.StandardMaterial("Mat", scene);
+	        materialPrevText.diffuseTexture = texturePrevText;
+	        groundPrevText.material = materialPrevText;
+	        texturePrevText.drawText("Prev", 25, 100, font, "black", "white", true, true);
+	        groundPrevText.position.y = 0.5
+	        groundPrevText.position.x = 6;
+	        groundPrevText.position.z = -5;
+	        groundPrevText.visibility = 1
+	        
+	        var groundPagingText =  BABYLON.MeshBuilder.CreateGround("paging", {width: groundWidth, height: groundHeight, subdivisions: 25}, scene);;
+	        var texturePagingText = new BABYLON.DynamicTexture("dynamic texture", {width:256, height:128}, scene);
+	        texturePagingText.getContext();
+	        var materialPagingText = new BABYLON.StandardMaterial("Mat", scene);
+	        materialPagingText.diffuseTexture = texturePagingText;
+	        groundPagingText.material = materialPagingText;
+	        texturePagingText.drawText("00/00", 12, 100, "bold 90px monospace", "black", "white", true, true);
+	        groundPagingText.position.y = 0.5
+	        groundPagingText.position.x = 0;
+	        groundPagingText.position.z = -5;
+	        groundPagingText.visibility = 1
+	        
+	         
+	        /*    
+	        //해당 박스에 액션 매니저 설정
+	        box.actionManager = new BABYLON.ActionManager(scene);
+	        //이벤트 생성하기
+	        box.actionManager.registerAction(
+	        //클릭이벤트를 정의하기
+	        new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, 
+	        (evt) => {
+	        	console.log(evt);
+	        	const sourceBox = evt.meshUnderPointer;
+	            //sourceBox.position.x += 0.1;
+	            //sourceBox.position.y += 0.1;
+	                
+	            if(clickEvt){
+	            	let [r=0,g=0,b=0] = rgbTransForm([255, 153, 102]);
+	                let color2 = new BABYLON.Color3(r, b, g);
+	                boxMaterial.diffuseColor = color2
+	                console.log(color2)
+				}else{
+	            	let [r=0,g=0,b=0] = rgbTransForm([153, 255, 102]);
+	                let color = new BABYLON.Color3(r, g, b);
+	                boxMaterial.diffuseColor = color;
+	                console.log(color);
+	            }
+	            clickEvt = !clickEvt;
+
+	        }));
+	        */
+               //땅 오브젝트 생성하기
+               //const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 4, height: 4});
+               /*
+	        //땅의 위치 설정
+               ground.position.y = -2;
+               //땅의 색상 변경을 위해 질가 생성
+               const groundMaterial = new BABYLON.StandardMaterial("groundMaterial");
+               //색상 설정
+               let [r=0,g=0,b=0] = rgbTransForm([255, 051, 102]);
+               //질감의 색상 설정
+               groundMaterial.diffuseColor = new BABYLON.Color4(0, 0, 0, 0);
+               //현재 땅의 질감 덮어쓰기
+               ground.material = groundMaterial;
+               */
+               const xrPromise = scene.createDefaultXRExperienceAsync({
+                   floorMeshes: [legalPad]
+               });
+	        return xrPromise.then((xrExperience) => {
+	        	console.log("Done, WebXR is enabled.");
+	            return scene;
+			});
+	        
+        };
+
+        //Object.assign(canvas.style , {position: 'fixed', display: 'flex', top: '1vh', left: '-2vw', gap: '1.2vw', fontSize: '3vmax', color: 'white', alignItems: 'flex-end',  width: '38%', height: '30%', zIndex:999});
+      		Object.assign(canvas.style , {position: 'fixed', display: 'flex', top: '1vh', left: '-2vw', gap: '1.2vw', zIndex:1});
+       
+		function startGame(){
+			if(setting.gameSelectType == - 1){
+				modalLoader.createModalAlertText(['게임을 셋팅해주세요.']);
+				return;
+			}
+			
+			if(canvas.hasAttribute('is_canvas_run') === false){
+		        createScene().then(sceneToRender => {
+		            engine.runRenderLoop(() => sceneToRender.render());
+		            canvas.setAttribute('is_canvas_run', 'Y')
+		        });
+			}else if(canvas.getAttribute('is_canvas_run') === 'N'){
+				canvas.style.display = 'flex';
+				canvas.setAttribute('is_canvas_run', 'Y')
+			}else if(canvas.getAttribute('is_canvas_run') === 'Y'){
+				canvas.style.display = 'none';
+				canvas.setAttribute('is_canvas_run', 'N')
+			}
+		}
+     	</script>
 </body>
 </html>

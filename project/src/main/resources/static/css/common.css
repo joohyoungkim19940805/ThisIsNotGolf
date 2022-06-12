@@ -98,40 +98,50 @@ footer{
 .arrow {
     border: solid #0000004d;
     border-width: 0 3px 3px 0;
-    padding: 3px;
+    padding: 0.3%;
     background: none;
     margin-top: 0.2%;
     margin-bottom: 0.1%;
 }
 
 .direction_up{
-  transform: rotate(-135deg);
-  -webkit-transform: rotate(-135deg);
+	transform: rotate(-135deg);
+	-webkit-transform: rotate(-135deg);
 }
 .direction_up_right{
-  transform: rotate(-90deg);
-  -webkit-transform: rotate(-90deg);
+	transform: rotate(-90deg);
+	-webkit-transform: rotate(-90deg);
 }
 .direction_right{
-  transform: rotate(-45deg);
-  -webkit-transform: rotate(-45deg);
+	transform: rotate(-45deg);
+	-webkit-transform: rotate(-45deg);
 }
 .direction_down_right{
-  transform: rotate(-0deg);
-  -webkit-transform: rotate(-0deg);
+	transform: rotate(-0deg);
+	-webkit-transform: rotate(-0deg);
 }
 .direction_down{
-  transform: rotate(45deg);
-  -webkit-transform: rotate(45deg);
+	transform: rotate(45deg);
+	-webkit-transform: rotate(45deg);
 }
 
-
-
+.direction_down_left{
+	transform: rotate(90deg);
+	-webkit-transform: rotate(135deg);
+}
 .direction_left{
-  transform: rotate(45deg);
-  -webkit-transform: rotate(45deg);
+	transform: rotate(135deg);
+	-webkit-transform: rotate(135deg);
+}
+.direction_up_left{
+	transform: rotate(180deg);
+	-webkit-transform: rotate(180deg);
 }
 
+textarea {
+	border: none;
+	resize: none;
+}
 button{
 	border:none;
 	background: none;
