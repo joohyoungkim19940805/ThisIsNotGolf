@@ -7,6 +7,7 @@
 <link th:href="@{css/common.css}" rel="stylesheet" />
 <script type="text/javascript" th:src="@{js/client/ModalLoader.js}"></script>
 <script type="text/javascript" th:src="@{js/client/GameSettingView.js}"></script>
+<script type="text/javascript" th:src="@{js/client/Questions.js}"></script>
 <script src="https://cdn.babylonjs.com/babylon.js"></script>
 <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
 <script type="text/javascript" th:src="@{js/client/meshwriter.min.js}"></script>
@@ -75,6 +76,7 @@
 <script type="text/javascript">
 	const randomColor = ['#ffffff','#fff5ee','#fffafa','#f8f8ff','#fffaf0','#f5f5f5','#f0f8ff','#f0ffff','#fdf5e6','#f5fffa','#ffefd5','#ffdab9','#faf0e6','#eee8aa','#ffe4e1','#ffe4b5','#ffdead','#d2b48c','#f5deb3','#fafad2','#ffffe0','#fff8dc','#faebd7','#f5f5dc','#fffacd','#fffff0','#f0e68c','#e6e6fa','#fff0f5','#ffe4c4','#ffebcd','#deb887','#cd853f','#00ced1','#00bfff','#7fffd4','#1e90ff','#00ffff','#f0fff0','#87cefa','#afeeee','#e0ffff','#add8e6','#b0c4de','#40e0d0','#48d1cc','#00ffff','#b0e0e6','#87ceeb','#4169e1','#ff00ff','#ff00ff','#c71585','#dc143c','#ff1493','#ffb6c1','#ff69b4','#ffc0cb','#dda0dd','#ee82ee','#d8bfd8','#da70d6','#a52a2a','#e9967a','#f08080','#cd5c5c','#ffa07a','#db7093','#f4a460','#fa8072','#ff6347','#ff4500','#ff0000','#b22222','#d2691e','#bc8f8f','#ff7f50','#ff8c00','#ffa500','#b8860b','#ffd700','#ffff00','#7fff00','#7cfc00','#00ff00','#32cd32','#00ff7f','#3cb371','#adff2f','#8fbc8f','#90ee90','#98fb98','#2e8b57','#00fa9a','#20b2aa','#66cdaa','#6b8e23','#bdb76b','#daa520'];
 	const getRandomColor = () => randomColor[Math.floor( Math.random() * (Math.floor(randomColor.length-1))) ];
+	const questions = new Questions();
 	const setting = {
 		chatYn : true,
 		timerYn : true,
@@ -82,13 +84,13 @@
 		timerEnd : false,
 		gameSelectKey : -1,
 		devQuestions : {
-			questionsList : [],
+			questionsList : questions.devQuestions,
 			pageMax : 1,
 			page : 1,
 			type : 0,
 		},
 		cottonQuestions : {
-			questionsList : [],
+			questionsList : [''],
 			pageMax : 1,
 			page : 1,
 			type : 1,
@@ -391,8 +393,8 @@
 		
 		<div id="cotton_questions" style="position: absolute;width: 100%;height: 100%;display: none;background-color: rgba(240, 248, 255, 0.29);opacity: 1;justify-content: center;align-items: center;top: 0px;left: 0px;z-index: 2;align-content: space-between;padding-top: 5%;">
 			<div class="cotton_questions_wrapper" style="width: 41vw;display: grid;gap: 2%;">
-				<a href="javascript:void(0);" style="padding-left: 96%;font-size: 2vmax;" onclick="this.offsetParent.style.display='none';">
-				X
+				<a href="javascript:void(0);" style="margin-left: 96%;font-size: 2vmax;background-color: white;text-align: center;" onclick="this.offsetParent.style.display='none';">
+					X
 				</a>
 				<div class="cotton_questions_content" style="display: grid;width: 100%;text-align: center;text-align: -webkit-center;gap: 5%; height: 47vh;">
 					<textarea id="story" name="story" rows="13" cols="37" placeholder="문제 내용 (한줄 당 37글자 엔터로 줄바꿈 된 기준 최대 20라인)" style="font-size: 1.1vmax;font-weight: bold;" maxlength="740"></textarea>
@@ -404,7 +406,15 @@
 			    		<button type="button" class="bottom_button" onclick="" style="height:100%">전체 문제 초기화</button>
 					</div>
 					<div class="questions_regist_wrapper" style="display: flex;">
-			    		<button type="button" class="bottom_button" onclick="" style="height:100%">등록하기</button>
+			    		<button type="button" class="bottom_button" onclick="cottonQuestionsRegister(this)" style="height:100%">등록하기</button>
+			    		<script type="text/javascript">
+			    			function cottonQuestionsRegister(obj){
+			    				let questionsWrapper = obj.offsetParent.querySelector('.cotton_questions_content');
+			    				let questions = questionsWrapper.querySelector('textarea');
+			    				let answer = questionsWrapper.querySelector('input');
+			    				setting.cottonQuestions.questionsList.push()
+			    			}
+			    		</script>
 					</div>
 				</div>
 				<div class="cotton_questions_paging" style="display: flex;justify-content: space-around;font-size: 3vmax;">
@@ -454,21 +464,25 @@
 	        var legalPad = BABYLON.SceneLoader.ImportMeshAsync(null, "/model/","LegalPad_6.glb")//.then(e=>e.meshes[0].position.x = 15);
 
 	        //한줄 37글자 20라인까지
-	        var text = ['일이삼사오육칠팔구십일이삼사오육칠팔구십일이삼사오육칠팔구십',
-	        			'1. 6월 12일',
-		        		'2. 6월 10일',
-		        		'3. 6월 11일',
-		        		'4. 6월 1일',
-		        		'5. 6월 2일',]
+	        var text = [''];
+	        var page = 1;
+	        var maxPage = 1;
+	        if(setting.gameSelectKey == 'devQuestions'){
+	        	page = setting.devQuestions.page;
+	        	maxPage = setting.devQuestions.questionsList.length;
+	        	text = setting.devQuestions.questionsList[page - 1].split('\n');
+	        }else if(setting.gameSelectKey == 'cottonQuestions'){
+	        	text = setting.cottonQuestions.questionsList
+	        }
 
 	        legalPad.then(pad=>{
 	        	let heightLine = 190;
        			let index = 2
        			text.forEach((e,i)=>{
-       				heightLine = heightLine + 18
+       				heightLine = heightLine + 23
         			var padDynamicTexture = new BABYLON.DynamicTexture("PadDynamicTexture", {width:1032, height:516}, scene);
         			padDynamicTexture.getContext();
-       				padDynamicTexture.drawText(e, 430, heightLine, "bold 15px comic", "#000000", "transparent", false, true);
+       				padDynamicTexture.drawText(e, 430, heightLine, "bold 20px comic", "#000000", "transparent", false, true);
         			var mat = new BABYLON.StandardMaterial("Mat", scene);
     		        mat.diffuseTexture = padDynamicTexture;
     		        mat.diffuseTexture.hasAlpha = true;
@@ -490,7 +504,7 @@
 	        groundNextText.material = materialNextText;
 	        textureNextText.drawText("Next", 25, 100, font, "black", "white", true, true);
 	        groundNextText.position.y = 0.5;
-	        groundNextText.position.x = -6;
+	        groundNextText.position.x = 6;
 	        groundNextText.position.z = -5;
 	        groundNextText.visibility = 1
 	        
@@ -502,7 +516,7 @@
 	        groundPrevText.material = materialPrevText;
 	        texturePrevText.drawText("Prev", 25, 100, font, "black", "white", true, true);
 	        groundPrevText.position.y = 0.5
-	        groundPrevText.position.x = 6;
+	        groundPrevText.position.x = -6;
 	        groundPrevText.position.z = -5;
 	        groundPrevText.visibility = 1
 	        
@@ -512,12 +526,23 @@
 	        var materialPagingText = new BABYLON.StandardMaterial("Mat", scene);
 	        materialPagingText.diffuseTexture = texturePagingText;
 	        groundPagingText.material = materialPagingText;
-	        texturePagingText.drawText("00/00", 12, 100, "bold 90px monospace", "black", "white", true, true);
+	        texturePagingText.drawText(`${page.toString().padStart(2,'0')}/${maxPage.toString().padStart(2,'0')}`, 12, 100, "bold 90px monospace", "black", "white", true, true);
 	        groundPagingText.position.y = 0.5
 	        groundPagingText.position.x = 0;
 	        groundPagingText.position.z = -5;
 	        groundPagingText.visibility = 1
 	        
+	        groundNextText.actionManager = new BABYLON.ActionManager(scene);
+	        groundNextText.actionManager.registerAction( new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, (evt) => {
+	        	const targetQuestions = setting[setting.gameSelectKey];
+	        	if(targetQuestions.type != 2 && targetQuestions.type != -1){
+	        		if(targetQuestions.page >= targetQuestions.questionsList.length){
+	        			targetQuestions.page = 0;
+	        		}
+	        		targetQuestions.page++;
+	        		texturePagingText.drawText(`${targetQuestions.page.toString().padStart(2,'0')}/${targetQuestions.questionsList.length.toString().padStart(2,'0')}`, 12, 100, "bold 90px monospace", "black", "white", true, true);
+	        	}
+	        }));
 	         
 	        /*    
 	        //해당 박스에 액션 매니저 설정
@@ -575,7 +600,7 @@
       		Object.assign(canvas.style , {position: 'fixed', display: 'flex', top: '1vh', left: '-2vw', gap: '1.2vw', zIndex:1});
        
 		function startGame(){
-			if(setting.gameSelectType == - 1){
+			if(setting.gameSelectKey == - 1){
 				modalLoader.createModalAlertText(['게임을 셋팅해주세요.']);
 				return;
 			}
