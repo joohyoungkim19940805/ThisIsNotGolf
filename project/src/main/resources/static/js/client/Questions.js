@@ -1,6 +1,6 @@
 class Questions{
 	constructor(){
-	
+		
 	}
 	
 	get devQuestions(){
