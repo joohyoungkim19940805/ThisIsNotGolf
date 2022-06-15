@@ -88,12 +88,14 @@
 			pageMax : 1,
 			page : 1,
 			type : 0,
+			answers : [],
 		},
 		cottonQuestions : {
-			questionsList : [''],
+			questionsList : [],
 			pageMax : 1,
 			page : 1,
 			type : 1,
+			answers : [],
 		},
 		twentyHills :{
 			questionsCount : 0,
@@ -382,10 +384,11 @@
 					if(setting.gameSelectType == - 1){
 						modalLoader.createModalAlertText(['게임을 선택해주세요.']);
 						return;
+					}else if(setting.gameSelectKey === 'cottonQuestions'){
+						document.querySelector('#cotton_questions').style.display='grid';
 					}
 					obj.offsetParent.style.display = 'none';
 					//setting[gameSelectKey];
-					document.querySelector('#cotton_questions').style.display='grid';
 					//cottonQuestions
 				}
 			</script>
@@ -397,8 +400,9 @@
 					X
 				</a>
 				<div class="cotton_questions_content" style="display: grid;width: 100%;text-align: center;text-align: -webkit-center;gap: 5%; height: 47vh;">
-					<textarea id="story" name="story" rows="13" cols="37" placeholder="문제 내용 (한줄 당 37글자 엔터로 줄바꿈 된 기준 최대 20라인)" style="font-size: 1.1vmax;font-weight: bold;" maxlength="740"></textarea>
-					<input type="text" min="1" placeholder="정답 내용" step="0.01" style="width: 50%;margin-left: 48%;">
+					<input id="title" type="text" min="1" placeholder="제목" step="0.01" maxlength="43" style="width: 100%;">
+					<textarea id="questions" rows="13" cols="37" placeholder="문제 내용 (한줄 당 37글자 엔터로 줄바꿈 된 기준 최대 20라인)" style="font-size: 1.1vmax;font-weight: bold;" maxlength="740"></textarea>
+					<input id="answer" type="text" min="1" placeholder="정답 내용" step="0.01" style="width: 50%;margin-left: 48%;">
 				</div>
 				<div class="cotton_questions_button_wrapper" style="display: flex; justify-content: space-between;">
 					<div class="questions_cancel_wrapper" style="display: flex; gap: 28%;">
@@ -409,22 +413,68 @@
 			    		<button type="button" class="bottom_button" onclick="cottonQuestionsRegister(this)" style="height:100%">등록하기</button>
 			    		<script type="text/javascript">
 			    			function cottonQuestionsRegister(obj){
-			    				let questionsWrapper = obj.offsetParent.querySelector('.cotton_questions_content');
-			    				let questions = questionsWrapper.querySelector('textarea');
-			    				let answer = questionsWrapper.querySelector('input');
-			    				setting.cottonQuestions.questionsList.push()
+			    				let questionsWrapper = obj.offsetParent;
+			    				let questionsContent = questionsWrapper.querySelector('.cotton_questions_content');
+			    				let title = questionsWrapper.querySelector('input#title');
+			    				let questionsArr = questionsWrapper.querySelector('textarea#questions');
+			    				let answer = questionsWrapper.querySelector('input#answer');
+			    				let resultQuestions = `${title.value}\n${questionsArr.value}`.split('\n').reduce((t,e,i)=>{
+			    				    if(e.length > 42){
+			    				        let str;
+			    				        while(str !== '' ){
+			    				            str = e.substring(0,42)
+			    				            if(str !== ''){
+			    				                t.push(str);
+			    				            }
+			    				            e = e.substring(43);
+			    				        }
+			    				    }else{
+			    				        t.push(e)
+			    				    }
+			    				    return t
+			    				},[]).join('\n')
+			    				setting.cottonQuestions.questionsList.push(resultQuestions);
+			    				setting.cottonQuestions.answers.push(answer.value);
+			    				
+			    				title.value = '';
+			    				questionsArr.value = '';
+			    				answer.value = '';
+			    				
+			    				let nowPage = questionsWrapper.querySelector('#cotton_questions_page');
+				    			let maxPage = questionsWrapper.querySelector('#cotton_questions_max_page');
+				    			nowPage.textContent = `${Number(nowPage.textContent) + 1}`.padStart(2,'0');
+				    			maxPage.textContent = `${Number(maxPage.textContent) + 1}`.padStart(2,'0');
 			    			}
 			    		</script>
 					</div>
 				</div>
 				<div class="cotton_questions_paging" style="display: flex;justify-content: space-around;font-size: 3vmax;">
-					<button type="button" class="" style="font-size: 3vmax; cursor: pointer;">
+					<button type="button" id="cotton_questions_left_page" onclick="cottonQuestionsPagingProcess(this)" in_add_value = "-1" style="font-size: 3vmax; cursor: pointer;">
 						&lt;
 					</button>
-					<div style="display: flex;gap: 15%;justify-content: center;"><span class="cotton_questions_page">01</span><i>/</i><span class="cotton_questions_max_page">01</span></div>
-					<button type="button" class="" style="font-size: 3vmax; cursor: pointer;">
+					<div style="display: flex;gap: 15%;justify-content: center;"><i id="cotton_questions_page">01</i><i>/</i><i id="cotton_questions_max_page">01</i></div>
+					<button type="button" id="cotton_questions_right_page" onclick="cottonQuestionsPagingProcess(this)" in_add_value = "11" style="font-size: 3vmax; cursor: pointer;">
 						&gt;
 					</button>
+					<script type="text/javascript">
+						function cottonQuestionsPagingProcess(obj){
+		    				let questionsWrapper = obj.offsetParent;
+		    				let questionsContent = questionsWrapper.querySelector('.cotton_questions_content');
+		    				let title = questionsWrapper.querySelector('input#title');
+		    				let questionsArr = questionsWrapper.querySelector('textarea#questions');
+		    				let answer = questionsWrapper.querySelector('input#answer');
+		    				
+							let nowPage = Number(questionsWrapper.querySelector('#cotton_questions_page').textContent);
+							let paging = Number(nowPage + Number(obj.getAttribute('in_add_value')) ) - 1;
+							questionsWrapper.querySelector('#cotton_questions_page').textContent = `${paging + 1}`.padStart(2,'0') ;
+							console.log(paging);
+							console.log(setting.cottonQuestions.questionsList[paging])
+							title.value = setting.cottonQuestions.questionsList[paging].split('\n')[0];
+							questionsArr.value = setting.cottonQuestions.questionsList[paging];
+							answer.value = setting.cottonQuestions.answers[paging];
+							
+						}
+					</script>
 				</div>
 			</div>
 		</div>
@@ -474,23 +524,7 @@
 	        }else if(setting.gameSelectKey == 'cottonQuestions'){
 	        	text = setting.cottonQuestions.questionsList
 	        }
-
-	        legalPad.then(pad=>{
-	        	let heightLine = 190;
-       			let index = 2
-       			text.forEach((e,i)=>{
-       				heightLine = heightLine + 23
-        			var padDynamicTexture = new BABYLON.DynamicTexture("PadDynamicTexture", {width:1032, height:516}, scene);
-        			padDynamicTexture.getContext();
-       				padDynamicTexture.drawText(e, 430, heightLine, "bold 20px comic", "#000000", "transparent", false, true);
-        			var mat = new BABYLON.StandardMaterial("Mat", scene);
-    		        mat.diffuseTexture = padDynamicTexture;
-    		        mat.diffuseTexture.hasAlpha = true;
-    		        pad.meshes[index].material = mat
-    		        //console.log(pad.meshes[index].scaling);
-    		        index++;
-       			});
-	        });
+	        createText(legalPad);
 	    	var font = "bold 100px monospace";
 	    	
 	        var groundWidth = 4;
@@ -536,11 +570,25 @@
 	        groundNextText.actionManager.registerAction( new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, (evt) => {
 	        	const targetQuestions = setting[setting.gameSelectKey];
 	        	if(targetQuestions.type != 2 && targetQuestions.type != -1){
-	        		if(targetQuestions.page >= targetQuestions.questionsList.length){
-	        			targetQuestions.page = 0;
-	        		}
 	        		targetQuestions.page++;
+	        		if(targetQuestions.page >= targetQuestions.questionsList.length + 1){
+	        			targetQuestions.page = 1;
+	        		}
 	        		texturePagingText.drawText(`${targetQuestions.page.toString().padStart(2,'0')}/${targetQuestions.questionsList.length.toString().padStart(2,'0')}`, 12, 100, "bold 90px monospace", "black", "white", true, true);
+	        		text = setting.devQuestions.questionsList[targetQuestions.page - 1].split('\n');
+	        	}
+	        }));
+	        groundPrevText.actionManager = new BABYLON.ActionManager(scene);
+	        groundPrevText.actionManager.registerAction( new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, (evt) => {
+	        	const targetQuestions = setting[setting.gameSelectKey];
+	        	if(targetQuestions.type != 2 && targetQuestions.type != -1){
+	        		targetQuestions.page--;
+	        		if(targetQuestions.page < 1){
+	        			targetQuestions.page = 7;
+	        		}
+	        		texturePagingText.drawText(`${targetQuestions.page.toString().padStart(2,'0')}/${targetQuestions.questionsList.length.toString().padStart(2,'0')}`, 12, 100, "bold 90px monospace", "black", "white", true, true);
+	        		text = setting.devQuestions.questionsList[targetQuestions.page - 1].split('\n');
+	        		createText(legalPad);
 	        	}
 	        }));
 	         
@@ -593,7 +641,36 @@
 	        	console.log("Done, WebXR is enabled.");
 	            return scene;
 			});
-	        
+	        function createText(legalPad){
+	        	legalPad.then(pad=>{
+		        	let heightLine = 380;
+	       			let index = 0
+	       			for(let i = 2 ; i < pad.meshes.length ; i++){
+	       				let viewText = text.hasOwnProperty(index) ? text[index] : '';
+	       				heightLine = heightLine + 50
+	       				var padDynamicTexture = new BABYLON.DynamicTexture("PadDynamicTexture", {width:2064, height:1032}, scene);
+	        			padDynamicTexture.getContext();
+	       				padDynamicTexture.drawText(viewText, 870, heightLine, "bold 30px comic", "#000000", "transparent", false, true);
+	        			var mat = new BABYLON.StandardMaterial("Mat", scene);
+	    		        mat.diffuseTexture = padDynamicTexture;
+	    		        mat.diffuseTexture.hasAlpha = true;
+	    		        pad.meshes[i].material = mat;
+	    		        index++;
+	       			}/*
+	       			text.forEach((e,i)=>{
+	       				heightLine = heightLine + 23
+	        			var padDynamicTexture = new BABYLON.DynamicTexture("PadDynamicTexture", {width:1032, height:516}, scene);
+	        			padDynamicTexture.getContext();
+	       				padDynamicTexture.drawText(e, 430, heightLine, "bold 20px comic", "#000000", "transparent", false, true);
+	        			var mat = new BABYLON.StandardMaterial("Mat", scene);
+	    		        mat.diffuseTexture = padDynamicTexture;
+	    		        mat.diffuseTexture.hasAlpha = true;
+	    		        pad.meshes[index].material = mat
+	    		        //console.log(pad.meshes[index].scaling);
+	    		        index++;
+	       			});*/
+	        	});
+	        }
         };
 
         //Object.assign(canvas.style , {position: 'fixed', display: 'flex', top: '1vh', left: '-2vw', gap: '1.2vw', fontSize: '3vmax', color: 'white', alignItems: 'flex-end',  width: '38%', height: '30%', zIndex:999});
