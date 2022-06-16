@@ -101,6 +101,12 @@
 			questionsCount : 0,
 			answer : '',
 			type : 2,
+		},
+		thisPageIsExist : function(page, ...obj){
+			console.log(obj);
+			console.log(page);
+			console.log(typeof page)
+			return obj.filter(e=>e.hasOwnProperty[page]).length == obj.length;
 		}
 	}
 	window.addEventListener('load',() => {
@@ -401,7 +407,7 @@
 				</a>
 				<div class="cotton_questions_content" style="display: grid;width: 100%;text-align: center;text-align: -webkit-center;gap: 5%; height: 47vh;">
 					<input id="title" type="text" min="1" placeholder="제목" step="0.01" maxlength="43" style="width: 100%;">
-					<textarea id="questions" rows="13" cols="37" placeholder="문제 내용 (한줄 당 37글자 엔터로 줄바꿈 된 기준 최대 20라인)" style="font-size: 1.1vmax;font-weight: bold;" maxlength="740"></textarea>
+					<textarea id="questions" rows="13" cols="37" placeholder="문제 내용 (한줄 당 42글자 엔터로 줄바꿈 된 기준 최대 20라인)" style="font-size: 1vmax;font-weight: bold;" maxlength="740"></textarea>
 					<input id="answer" type="text" min="1" placeholder="정답 내용" step="0.01" style="width: 50%;margin-left: 48%;">
 				</div>
 				<div class="cotton_questions_button_wrapper" style="display: flex; justify-content: space-between;">
@@ -415,9 +421,17 @@
 			    			function cottonQuestionsRegister(obj){
 			    				let questionsWrapper = obj.offsetParent;
 			    				let questionsContent = questionsWrapper.querySelector('.cotton_questions_content');
-			    				let title = questionsWrapper.querySelector('input#title');
-			    				let questionsArr = questionsWrapper.querySelector('textarea#questions');
-			    				let answer = questionsWrapper.querySelector('input#answer');
+			    				let title = questionsContent.querySelector('input#title');
+			    				let questionsArr = questionsContent.querySelector('textarea#questions');
+			    				let answer = questionsContent.querySelector('input#answer');
+			    				
+			    				if(title.value.length === 0 || questionsArr.value.length === 0 || answer.value.length ===0){
+			    					let alertMessage = ['입력되지 않은 내용이 있습니다.']
+			    					alertMessage.push(...[...questionsContent.children].filter(e=>e.value.length == 0).map(e=>`*${e.placeholder}*`));
+			    					modalLoader.createModalAlertText(alertMessage);
+			    					return false;
+			    				}
+			    				
 			    				let resultQuestions = `${title.value}\n${questionsArr.value}`.split('\n').reduce((t,e,i)=>{
 			    				    if(e.length > 42){
 			    				        let str;
@@ -427,51 +441,90 @@
 			    				                t.push(str);
 			    				            }
 			    				            e = e.substring(43);
+			    				            i++;
+			    				            if(i > 500){
+			    				            	break;
+			    				            }
 			    				        }
 			    				    }else{
 			    				        t.push(e)
 			    				    }
 			    				    return t
-			    				},[]).join('\n')
-			    				setting.cottonQuestions.questionsList.push(resultQuestions);
-			    				setting.cottonQuestions.answers.push(answer.value);
-			    				
-			    				title.value = '';
-			    				questionsArr.value = '';
-			    				answer.value = '';
-			    				
+			    				},[]).map((e,i) => i == 0 ? 
+			    										e = e : 
+			    										e = ''.padStart(7,'\t') + e).join('\n')
+			    							    				
 			    				let nowPage = questionsWrapper.querySelector('#cotton_questions_page');
 				    			let maxPage = questionsWrapper.querySelector('#cotton_questions_max_page');
-				    			nowPage.textContent = `${Number(nowPage.textContent) + 1}`.padStart(2,'0');
-				    			maxPage.textContent = `${Number(maxPage.textContent) + 1}`.padStart(2,'0');
+				    			let nowPageValue = Number(nowPage.textContent);
+				    			let maxPageValue = Number(maxPage.textContent);
+			    				if(setting.thisPageIsExist(nowPageValue -1, [setting.cottonQuestions.questionsList, setting.cottonQuestions.answers])
+			    					){
+			    					setting.cottonQuestions.questionsList[nowPageValue - 1] = resultQuestions;
+			    					setting.cottonQuestions.answers[nowPageValue - 1] = answer.value;
+			    					nowPage.textContent = `${nowPageValue + 1}`.padStart(2,'0');
+			    					if(setting.thisPageIsExist(nowPageValue + 1, [setting.cottonQuestions.questionsList, setting.cottonQuestions.answers])
+			    						){
+			    						cottonQuestionsPagingProcess(questionsWrapper.querySelector('#cotton_questions_right_page'), 1);
+			    					}else{
+			    						questionsTextDelete(title, questionsArr, answer);
+				    					nowPage.textContent = `${nowPageValue + 1}`.padStart(2,'0');
+			    					}
+			    					return false;
+			    				}else{
+			    					console.log(setting);
+			    					setting.cottonQuestions.questionsList.push(resultQuestions);
+			    					setting.cottonQuestions.answers.push(answer.value);
+			    					questionsTextDelete(title, questionsArr, answer)
+					    			nowPage.textContent = `${nowPageValue + 1}`.padStart(2,'0');
+					    			maxPage.textContent = `${maxPageValue + 1}`.padStart(2,'0');
+			    				}
+			    			}
+			    			function questionsTextDelete(...element){
+			    				element.map(e=>e.value='');
 			    			}
 			    		</script>
 					</div>
 				</div>
 				<div class="cotton_questions_paging" style="display: flex;justify-content: space-around;font-size: 3vmax;">
-					<button type="button" id="cotton_questions_left_page" onclick="cottonQuestionsPagingProcess(this)" in_add_value = "-1" style="font-size: 3vmax; cursor: pointer;">
+					<button type="button" id="cotton_questions_left_page" onclick="cottonQuestionsPagingProcess(this, -1)" style="font-size: 3vmax; cursor: pointer;">
 						&lt;
 					</button>
 					<div style="display: flex;gap: 15%;justify-content: center;"><i id="cotton_questions_page">01</i><i>/</i><i id="cotton_questions_max_page">01</i></div>
-					<button type="button" id="cotton_questions_right_page" onclick="cottonQuestionsPagingProcess(this)" in_add_value = "11" style="font-size: 3vmax; cursor: pointer;">
+					<button type="button" id="cotton_questions_right_page" onclick="cottonQuestionsPagingProcess(this, 1)" style="font-size: 3vmax; cursor: pointer;">
 						&gt;
 					</button>
 					<script type="text/javascript">
-						function cottonQuestionsPagingProcess(obj){
+						function cottonQuestionsPagingProcess(obj, addNumber){
 		    				let questionsWrapper = obj.offsetParent;
 		    				let questionsContent = questionsWrapper.querySelector('.cotton_questions_content');
 		    				let title = questionsWrapper.querySelector('input#title');
 		    				let questionsArr = questionsWrapper.querySelector('textarea#questions');
 		    				let answer = questionsWrapper.querySelector('input#answer');
 		    				
+		    				let maxPage = Number(questionsWrapper.querySelector('#cotton_questions_max_page').textContent);
 							let nowPage = Number(questionsWrapper.querySelector('#cotton_questions_page').textContent);
-							let paging = Number(nowPage + Number(obj.getAttribute('in_add_value')) ) - 1;
-							questionsWrapper.querySelector('#cotton_questions_page').textContent = `${paging + 1}`.padStart(2,'0') ;
-							console.log(paging);
-							console.log(setting.cottonQuestions.questionsList[paging])
-							title.value = setting.cottonQuestions.questionsList[paging].split('\n')[0];
-							questionsArr.value = setting.cottonQuestions.questionsList[paging];
-							answer.value = setting.cottonQuestions.answers[paging];
+							let paging = nowPage + addNumber;
+							if(paging < 1){
+								paging = maxPage;
+							}else if(paging > maxPage){
+								paging = 1;
+							}
+
+							questionsWrapper.querySelector('#cotton_questions_page').textContent = `${paging}`.padStart(2,'0') ;
+							paging = paging - 1
+							if(setting.cottonQuestions.questionsList.hasOwnProperty(paging) && 
+								setting.cottonQuestions.answers.hasOwnProperty(paging)
+							){
+								textArr = setting.cottonQuestions.questionsList[paging].split('\n')
+								title.value = textArr[0];
+								questionsArr.value = textArr.map((e,i) => i == 0 ? '' : e.replaceAll('\t','')).join('\n').substring(1);
+								answer.value = setting.cottonQuestions.answers[paging];
+							}else{
+								title.value = ''
+								questionsArr.value = ''
+								answer.value = ''
+							}
 							
 						}
 					</script>
@@ -522,7 +575,9 @@
 	        	maxPage = setting.devQuestions.questionsList.length;
 	        	text = setting.devQuestions.questionsList[page - 1].split('\n');
 	        }else if(setting.gameSelectKey == 'cottonQuestions'){
-	        	text = setting.cottonQuestions.questionsList
+	        	page = setting.cottonQuestions.page;
+	        	maxPage = setting.cottonQuestions.questionsList.length;
+	        	text = setting.cottonQuestions.questionsList[page - 1].split('\n');
 	        }
 	        createText(legalPad);
 	    	var font = "bold 100px monospace";

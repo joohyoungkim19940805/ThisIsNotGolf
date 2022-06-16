@@ -28,7 +28,7 @@ class ModalLoader{
 		}
 	}
 	createModalAlertText(text){
-				
+		text.reverse();
 		this.modalAlert.querySelector('.modal_content').append(...text.map(e => Object.assign( document.createElement('div'), {textContent:e}) ));
 		this.modalAlert.showModal();
 	}
