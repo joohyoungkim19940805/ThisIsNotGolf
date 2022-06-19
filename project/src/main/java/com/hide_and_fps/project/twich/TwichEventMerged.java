@@ -18,7 +18,9 @@ public abstract class TwichEventMerged extends Bot {
 	public TwichEventMerged() {
 		super();
 	}
-	
+	/*
+	 * 
+	 */
 	public WebSocketSession connectTwich(WebSocketSession webSocketSession) {
 		if(isRun == false) {
 			super.start();

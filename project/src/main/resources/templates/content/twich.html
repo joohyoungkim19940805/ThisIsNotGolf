@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <title>주폭도는 풀 수 있는 문제 ♥</title>
-<link rel="icon" type="image/x-icon" th:href=@{images/favicon.ico}>
+<link rel="icon" type="image/x-icon" th:href="@{images/favicon.ico}"/>
 <link th:href="@{css/common.css}" rel="stylesheet" />
 <script type="text/javascript" th:src="@{js/client/ModalLoader.js}"></script>
 <script type="text/javascript" th:src="@{js/client/GameSettingView.js}"></script>
@@ -14,6 +14,12 @@
 <style>
 	span.chat_id:after {
     	content: " : ";
+	}
+	label.questions_user_select:after{
+		content: "번 : ";
+	}
+	span.questions_user_select_number:after{
+		content:"명";
 	}
 	.bottom_wrap_fadeout{
 		animation : fadeout 200ms linear forwards;
@@ -72,23 +78,45 @@
 	.menu_component button{
 		color: #0031ad;
 	}
+	.video_question_select{
+		width:30%;
+		height:10%;
+	}
+	.chat_questions_view_item_wrapper{
+		width: 50%;
+		display: grid;
+		align-items: center;
+		font-size: 1.2vmax;
+		font-weight: bold;
+	}
+	svg.chat_questions_chart{
+		width: 65%;
+		height: 2vh;
+	}
+	svg.chat_questions_chart > rect.chat_questions_chart_graph{
+		height: 100%;
+	}
 </style>
 <script type="text/javascript">
 	const randomColor = ['#ffffff','#fff5ee','#fffafa','#f8f8ff','#fffaf0','#f5f5f5','#f0f8ff','#f0ffff','#fdf5e6','#f5fffa','#ffefd5','#ffdab9','#faf0e6','#eee8aa','#ffe4e1','#ffe4b5','#ffdead','#d2b48c','#f5deb3','#fafad2','#ffffe0','#fff8dc','#faebd7','#f5f5dc','#fffacd','#fffff0','#f0e68c','#e6e6fa','#fff0f5','#ffe4c4','#ffebcd','#deb887','#cd853f','#00ced1','#00bfff','#7fffd4','#1e90ff','#00ffff','#f0fff0','#87cefa','#afeeee','#e0ffff','#add8e6','#b0c4de','#40e0d0','#48d1cc','#00ffff','#b0e0e6','#87ceeb','#4169e1','#ff00ff','#ff00ff','#c71585','#dc143c','#ff1493','#ffb6c1','#ff69b4','#ffc0cb','#dda0dd','#ee82ee','#d8bfd8','#da70d6','#a52a2a','#e9967a','#f08080','#cd5c5c','#ffa07a','#db7093','#f4a460','#fa8072','#ff6347','#ff4500','#ff0000','#b22222','#d2691e','#bc8f8f','#ff7f50','#ff8c00','#ffa500','#b8860b','#ffd700','#ffff00','#7fff00','#7cfc00','#00ff00','#32cd32','#00ff7f','#3cb371','#adff2f','#8fbc8f','#90ee90','#98fb98','#2e8b57','#00fa9a','#20b2aa','#66cdaa','#6b8e23','#bdb76b','#daa520'];
 	const getRandomColor = () => randomColor[Math.floor( Math.random() * (Math.floor(randomColor.length-1))) ];
 	const questions = new Questions();
+	var webSocket;
 	const setting = {
 		chatYn : true,
 		timerYn : true,
 		backgroundImage : [`url('images/jululu_background_image_night.png')`, `url('images/jululu_background_image.png')`],
-		timerEnd : false,
+		isStartGame : false,
 		gameSelectKey : -1,
+		questionsRecord : {},
+		nowQuestionsInfo : {},
+		nowQuestionsTotalCount : 0,
 		devQuestions : {
 			questionsList : questions.devQuestions,
 			pageMax : 1,
 			page : 1,
 			type : 0,
-			answers : [],
+			answers : questions.devAnswer,
 		},
 		cottonQuestions : {
 			questionsList : [],
@@ -102,11 +130,12 @@
 			answer : '',
 			type : 2,
 		},
-		thisPageIsExist : function(page, ...obj){
+		thisPageIsExist : function(page, obj){
 			console.log(obj);
 			console.log(page);
 			console.log(typeof page)
-			return obj.filter(e=>e.hasOwnProperty[page]).length == obj.length;
+			console.log(obj.filter(e=>e.hasOwnProperty(page)).length == obj.length)
+			return obj.filter(e=>e.hasOwnProperty(page)).length == obj.length;
 		}
 	}
 	window.addEventListener('load',() => {
@@ -116,7 +145,7 @@
 	    timer = new Timer(document.querySelector('.time_wrapper'));
 	    timer.setNow();
 	    
-		const webSocket = new WebSocket(`ws://${location.host}/room/twich`);
+		webSocket = new WebSocket(`ws://${location.host}/room/twich`);
 		webSocket.onopen = function () {
 		};
 	    webSocket.onmessage = function (event) { 
@@ -126,6 +155,9 @@
 		        	chatContentTemplate(data.chat).then(chatElement=>messageViewLoder(chatElement))
 		        								.then(chatWrapCount=>chatControl(chatWrapCount))
 	        	}
+	        	//console.log(data.chat)
+	        	checkGameChatFilter(data.chat).then((chatInfo)=>chatQuestionsMapperFilter(chatInfo))
+	        								.then((chatInfo)=>chatStatistics(chatInfo));
 	        }else if(data.hasOwnProperty('subscription')){
 	        	console.log(data);
 	        }else if(data.hasOwnProperty('follow')){
@@ -135,14 +167,14 @@
 	        }
 	    };
 
-    	let chatContentTemplate = ({message, user}) => {
+	    const chatContentTemplate = ({message, user}) => {
 			return new Promise(resolve =>
 						setTimeout(resolve(
 											[Object.assign(document.createElement('span'), {className : 'chat_id', textContent : user}), 
 											Object.assign(document.createElement('span'),{className : 'chat_message', textContent : message})]
 											)), 1);
 		}
-	    let messageViewLoder = (chatElement) => {
+    	const messageViewLoder = (chatElement) => {
 	    	return new Promise(resolve =>{
 		    	if(chatContentArr){
 					let div = document.createElement('div');
@@ -153,11 +185,48 @@
 				return setTimeout(resolve(chatContentArr.childElementCount), 1);
 	    	});
 		}
-	    let chatControl = (chatWrapCount) => {
+	    const chatControl = (chatWrapCount) => {
 	    	if(chatWrapCount >= 200){
 	    		chatContentArr.removeChild(chatContentArr.firstElementChild);
 	    	}
 	    	chatContentArr.scrollTop = chatContentArr.scrollHeight;
+	    }
+	    
+	    const checkGameChatFilter = (chatInfo) => {
+	    	return new Promise(resolve =>{
+		    	if(timer.isCustomRun && canvas.getAttribute('is_canvas_run') === 'Y' && chatInfo.message.charAt(0) === '#'){
+		    		return setTimeout(resolve(chatInfo), 1);
+		    	}
+				return setTimeout(resolve(''), 1);
+	    	});
+	    }
+	    
+	    const chatQuestionsMapperFilter = (chatInfo) => {
+	    	return new Promise(resolve =>{
+		    	if(chatInfo !== '' && setting.nowQuestionsInfo.hasOwnProperty(chatInfo.message.substring(1))){
+		    		return setTimeout(resolve(chatInfo), 1);
+		    	}
+				return setTimeout(resolve(''), 1);
+	    	});
+	    }
+	    
+	    const chatStatistics = (chatInfo) => {
+	    	return new Promise(resolve =>{
+	    		if(chatInfo !== ''){
+		    		let message = chatInfo.message.substring(1);
+		    		let targetObject = setting.nowQuestionsInfo[message];
+		    		
+		    		targetObject.userSelectCount++;
+		    		targetObject.userSelectCountHTML.textContent = targetObject.userSelectCount;
+		    		setting.nowQuestionsTotalCount += targetObject.userSelectCount;
+		    		
+		    		
+		    		
+		    		targetObject.chartValue = targetObject.userSelectCount / setting.nowQuestionsTotalCount
+		    		targetObject.chartValueHTML.width = `${targetObject.chartValue * 100}%`
+	    		}
+				return setTimeout(resolve(''), 1);
+	    	});
 	    }
 	});
 
@@ -168,24 +237,29 @@
     		this.hour = Object.freeze(this.minute * 60);
     		this.timerInterval;
     		this.timerElement = timerElement;
-    		this.isRun = false;
+    		this.isCustomRun = false;
+    		this.inputMinute = 0;
     	}
     	
-    	setCoustmTimer(inputMinute){
-    		if(inputMinute == 0){
+    	setCustomTimer(objOffsetParent){
+    		this.inputMinute = objOffsetParent.querySelector('.timer_setting_input_block input').value
+    		if(this.inputMinute == 0){
     			modalLoader.createModalAlertText(['시간을 선택해주세요(분 단위 입력)']);
     			return false;
     		}
+    		
+    		objOffsetParent.style.display = 'none';
+    		createChatWrapper();
     		this.clear();
-    		this.isRun = true;
+    		this.isCustomRun = true;
     		this.timerElement.style.display = 'flex';
-    		let endTime = (Number(inputMinute) * this.minute) + new Date().getTime();
+    		let endTime = (Number(this.inputMinute) * this.minute) + new Date().getTime();
     		this.timerInterval = setInterval(()=>{
 	    		let ms = endTime - new Date().getTime();
 			    if(ms <= 0){
+		    		this.isCustomRun = false;
 			    	this.setTimerDefult();
 			    	modalLoader.createModalAlertText(['타이머 종료']);
-			    	setting.timerEnd = true;
 			    	return false;
 			    }
 	    		this.timerElement.querySelector('.hour').textContent = `${Math.floor( ms / this.hour )}`.padStart(2,'0');
@@ -196,10 +270,9 @@
     	}
     	setNow(){
     		this.clear();
-    		this.isRun= true;
     		this.timerElement.style.display = 'flex';
+    		this.isCustomRun = false;
     		this.timerInterval = setInterval(()=>{
-    			setting.timerEnd = false;
 	    		let now = new Date()
 	    		this.timerElement.querySelector('.hour').textContent = `${ now.getHours() }`.padStart(2,'0');
 	    		this.timerElement.querySelector('.minute').textContent = `${ now.getMinutes() }`.padStart(2,'0');
@@ -208,32 +281,31 @@
     		}, 60);
     	}
     	clear(){
-    		this.isRun = false;
+    		this.isCustomRun = false;
     		clearInterval(this.timerInterval)
     		this.timerElement.style.display = 'none';
-    		setting.timerEnd = false;
     	}
     	toggle(){
-    		this.isRun = !this.isRun;
-    		if(this.isRun){
+    		setting.timerYn = !setting.timerYn;
+    		if(setting.timerYn){
     			this.setNow();
     		}else{
     			this.clear();
     		}
     	}
     	setTimerDefult(){
+    		this.isCustomRun = false;
     		clearInterval(this.timerInterval)
     		this.timerElement.querySelector('.hour').textContent = '00'
     		this.timerElement.querySelector('.minute').textContent = '00'
     		this.timerElement.querySelector('.seconds').textContent = '00'
     		this.timerElement.querySelector('.millisecond').textContent = '00'
-    		setting.timerEnd = false;
     	}
     	
     }
 </script>
 </head>
-<body style="height: 100%; min-height: 100%;">
+<body style="height: 100%; min-height: 100%;" oncontextmenu="return false">>
 	<div id="all_content_wrap" style="background-image: url('images/jululu_background_image_night.png'); 
 		background-repeat: no-repeat;
     	background-size: 100% 100%;position:absolute; top:0; bottom:0; right:0; left:0;
@@ -247,7 +319,7 @@
 			<div class="top_button_list"></div>
 		</div>
 		-->
-		<div class="time_wrapper" style="position: absolute;display: flex;bottom: 11.4vh;right: 21.8vw;gap: 1.2vw;font-size: 3vmax;color: white;align-items: flex-end;">
+		<div class="time_wrapper" style="position: absolute;display: flex;bottom: 11.4vh;right: 21.8vw;gap: 1.2vw;font-size: 3vmax;color: white;align-items: flex-end;width: 16vw;height: 8vh">
             <span class="hour time_separator">00</span>
             <span class="minute time_separator">00</span>
             <span class="seconds time_separator_seconds">00</span>
@@ -273,7 +345,7 @@
 				<i class="bottom_show_hide arrow direction_up"></i>
 			</div>
 			<div class="bottom_button_list bottom_wrap_fadein">
-				<button type="button" class="bottom_button" onclick="startGame();">게임시작</button>
+				<button id="game_start_button"type="button" class="bottom_button" onclick="startGame(this);">게임시작</button>
 				<button type="button" class="bottom_button" onclick="document.querySelector('#game_select_layer').style.display='flex'">게임 선택</button>
 				<button type="button" class="bottom_button" onclick="document.querySelector('#timer_setting_layer').style.display='flex'">타이머 설정</button>
 				<button type="button" class="bottom_button" onclick="document.querySelector('#option_layer').style.display='flex'">설정</button>
@@ -306,7 +378,7 @@
 			    	</script>
 			    </div>
 			    <div class="menu_component">
-			    	<button type="button" class="option_menu_button" onclick="timer.toggle(); timer.isRun ? this.textContent='시계 ON' : this.textContent='시계 OFF'">시계 ON</button>
+			    	<button type="button" class="option_menu_button" onclick="timer.toggle(); setting.timerYn ? this.textContent='시계 ON' : this.textContent='시계 OFF'">시계 ON</button>
 			    </div>
 			    <div class="menu_component">
 			    	<button type="button" class="option_menu_button" background_image_index="0" onclick="backgroundImageChange(this);">배경 1</button>
@@ -347,7 +419,7 @@
 						document.querySelector('.timer_setting_input_block > input').onkeyup = function(e){
 							if(e.key==='Enter'){
 								this.blur();
-								timer.setCoustmTimer(this.value);
+								timer.setCustomTimer(this.value);
 							}else{
 								return false; 
 							}
@@ -356,7 +428,7 @@
 				</div>
 				<div class="timer_setting_menu_wrap" style="display: flex;justify-content: space-around;width: 100%;">
 					<div class="menu_component" style="width:auto;">
-			    		<button type="button" class="option_menu_button" onclick="timer.setCoustmTimer(this.offsetParent.querySelector('.timer_setting_input_block input').value);">타이머 시작</button>>
+			    		<button type="button" class="option_menu_button" onclick="timer.setCustomTimer(this.offsetParent);">타이머 시작</button>
 					</div>
 					<div class="menu_component" style="width:auto;">
 			    		<button type="button" class="option_menu_button" onclick="timer.setTimerDefult();">타이머 초기화</button>
@@ -376,14 +448,16 @@
 			</script>
 			<div class="game_select_menu" style="width: 22%;height: 49%;display: grid;background-color: #db5dffde;align-items: center;align-content: space-evenly;justify-items: center;border-radius: 10%;">
 				<div class="menu_component" style="width:auto;">
-		    		<button type="button" class="option_menu_button" onclick="setting.gameSelectKey='devQuestions';gameSelectEvent(this)">주폭도는 풀 수 있는 개발자의 10선 문제</button>
+		    		<button type="button" class="option_menu_button" onclick="setting.gameSelectKey='devQuestions';gameSelectEvent(this);">주폭도는 풀 수 있는 개발자의 10선 문제</button>
 				</div>
 				<div class="menu_component" style="width:auto;">
-		    		<button type="button" class="option_menu_button" onclick="setting.gameSelectKey='cottonQuestions';gameSelectEvent(this)">르르땅이 선택하는 이심전심 문제풀이</button>
+		    		<button type="button" class="option_menu_button" onclick="setting.gameSelectKey='cottonQuestions';gameSelectEvent(this)">르르땅이 만드는 이심전심 문제풀이</button>
 				</div>
+				<!-- 
 				<div class="menu_component" style="width:auto;">
 		    		<button type="button" class="option_menu_button" onclick="setting.gameSelectKey='twentyHills';gameSelectEvent(this)">주폭도와 함께하는 온라인 스무고개</button>
 				</div>
+				-->
 			</div>
 			<script type="text/javascript">
 				function gameSelectEvent(obj){
@@ -392,8 +466,11 @@
 						return;
 					}else if(setting.gameSelectKey === 'cottonQuestions'){
 						document.querySelector('#cotton_questions').style.display='grid';
+					}else {
+						startGame(document.querySelector('#game_start_button'));
 					}
 					obj.offsetParent.style.display = 'none';
+					reloadScene();
 					//setting[gameSelectKey];
 					//cottonQuestions
 				}
@@ -406,9 +483,17 @@
 					X
 				</a>
 				<div class="cotton_questions_content" style="display: grid;width: 100%;text-align: center;text-align: -webkit-center;gap: 5%; height: 47vh;">
-					<input id="title" type="text" min="1" placeholder="제목" step="0.01" maxlength="43" style="width: 100%;">
-					<textarea id="questions" rows="13" cols="37" placeholder="문제 내용 (한줄 당 42글자 엔터로 줄바꿈 된 기준 최대 20라인)" style="font-size: 1vmax;font-weight: bold;" maxlength="740"></textarea>
-					<input id="answer" type="text" min="1" placeholder="정답 내용" step="0.01" style="width: 50%;margin-left: 48%;">
+					<input id="title" class="cotton_input_questions_content" data-empty_message="제목 내용" type="text" min="1" placeholder="제목" step="0.01" maxlength="43" style="width: 100%;">
+					<textarea id="questions" class="cotton_input_questions_content" data-empty_message="문제 내용"rows="13" cols="37" placeholder="문제 내용 (500글자 제한) &#13;&#10; *주의사항)줄바꿈을 기준으로 문항을 인식합니다.&#13;&#10;엔터 열번 누르면 10문항으로 만들어집니다.&#13;&#10;문항마다 숫자는 자동으로 붙습니다. &#13;&#10; 예시) &#13;&#10;주르르는 500이다. => 1. 주르르는 500이다.&#13;&#10;주르르는 600이다. => 2. 주르르는 600이다.&#13;&#10;주르르는 700이다. => 3. 주르르는 700이다." style="font-size: 1vmax;font-weight: bold;" maxlength="500"></textarea>
+					<div id="answer_wrapper" style="display: flex;flex-direction: row-reverse;align-items: center;justify-content: space-evenly;">
+						<input id="answer" class="cotton_input_questions_content" data-empty_message="정답 내용"type="text" min="1" placeholder="정답 내용" step="0.01" style="width: 50%;">
+						<label style="background: white;font-size: 1vmax;font-family: cursive;">
+							정답 내용 숨기기
+							<input type="checkbox" onclick="this.checked === true ? 
+																this.offsetParent.querySelector('#answer').style.color = 'transparent' : 
+																this.offsetParent.querySelector('#answer').style.color = 'black' "/>
+						</label>
+					</div>
 				</div>
 				<div class="cotton_questions_button_wrapper" style="display: flex; justify-content: space-between;">
 					<div class="questions_cancel_wrapper" style="display: flex; gap: 28%;">
@@ -416,7 +501,7 @@
 			    		<button type="button" class="bottom_button" onclick="" style="height:100%">전체 문제 초기화</button>
 					</div>
 					<div class="questions_regist_wrapper" style="display: flex;">
-			    		<button type="button" class="bottom_button" onclick="cottonQuestionsRegister(this)" style="height:100%">등록하기</button>
+			    		<button type="button" class="bottom_button" onclick="cottonQuestionsRegister(this); reloadScene();" style="height:100%">등록하기</button>
 			    		<script type="text/javascript">
 			    			function cottonQuestionsRegister(obj){
 			    				let questionsWrapper = obj.offsetParent;
@@ -425,45 +510,49 @@
 			    				let questionsArr = questionsContent.querySelector('textarea#questions');
 			    				let answer = questionsContent.querySelector('input#answer');
 			    				
-			    				if(title.value.length === 0 || questionsArr.value.length === 0 || answer.value.length ===0){
-			    					let alertMessage = ['입력되지 않은 내용이 있습니다.']
-			    					alertMessage.push(...[...questionsContent.children].filter(e=>e.value.length == 0).map(e=>`*${e.placeholder}*`));
-			    					modalLoader.createModalAlertText(alertMessage);
-			    					return false;
-			    				}
-			    				
-			    				let resultQuestions = `${title.value}\n${questionsArr.value}`.split('\n').reduce((t,e,i)=>{
-			    				    if(e.length > 42){
-			    				        let str;
-			    				        while(str !== '' ){
-			    				            str = e.substring(0,42)
-			    				            if(str !== ''){
-			    				                t.push(str);
-			    				            }
-			    				            e = e.substring(43);
-			    				            i++;
-			    				            if(i > 500){
-			    				            	break;
-			    				            }
-			    				        }
-			    				    }else{
-			    				        t.push(e)
-			    				    }
-			    				    return t
-			    				},[]).map((e,i) => i == 0 ? 
-			    										e = e : 
-			    										e = ''.padStart(7,'\t') + e).join('\n')
-			    							    				
 			    				let nowPage = questionsWrapper.querySelector('#cotton_questions_page');
 				    			let maxPage = questionsWrapper.querySelector('#cotton_questions_max_page');
 				    			let nowPageValue = Number(nowPage.textContent);
 				    			let maxPageValue = Number(maxPage.textContent);
-			    				if(setting.thisPageIsExist(nowPageValue -1, [setting.cottonQuestions.questionsList, setting.cottonQuestions.answers])
-			    					){
+			    				
+				    			let thisPageIsExist = setting.thisPageIsExist(nowPageValue -1, [setting.cottonQuestions.questionsList, setting.cottonQuestions.answers]);
+				    			
+			    				if(title.value.length === 0 || questionsArr.value.length === 0 || answer.value.length ===0){
+			    					let alertMessage = ['입력되지 않은 내용이 있습니다.']
+			    					alertMessage.push(...[...questionsContent.querySelectorAll('.cotton_input_questions_content')].filter(e=>e.value.length == 0).map(e=>`*${e.dataset.empty_message}*`));
+			    					modalLoader.createModalAlertText(alertMessage);
+			    					return false;
+			    				}
+			    				
+			    				let resultQuestions = `${title.value}\n${questionsArr.value}`.split('\n').reduce((list,item,index)=>{ 
+			    					if( thisPageIsExist == false || `${item.charAt(0)}${item.charAt(1)} ` == `${index}. ` == false){
+				    					index == 0 ? 
+	    										item = item : 
+	    										item = `${index}. ${item}`;
+			    					}
+									if(item.length > 42){
+			    				        let str;
+			    				        while(str !== '' ){
+			    				            str = item.substring(0,42)
+			    				            if(str !== ''){
+			    				            	list.push(str);
+			    				            }
+			    				            item = item.substring(43);
+			    				        }
+			    				    }else{
+			    				    	list.push(item)
+			    				    }
+			    				    return list
+			    				},[]).map((e,i) => i == 0 ? 
+										e = e : 
+    										e = ''.padStart(7,'\t') + e
+    								).join('\n')
+			    							    				
+			    				if(thisPageIsExist){
 			    					setting.cottonQuestions.questionsList[nowPageValue - 1] = resultQuestions;
-			    					setting.cottonQuestions.answers[nowPageValue - 1] = answer.value;
+			    					setting.cottonQuestions.answers[nowPageValue - 1] = `#${answer.value}`;
 			    					nowPage.textContent = `${nowPageValue + 1}`.padStart(2,'0');
-			    					if(setting.thisPageIsExist(nowPageValue + 1, [setting.cottonQuestions.questionsList, setting.cottonQuestions.answers])
+			    					if(setting.thisPageIsExist(nowPageValue, [setting.cottonQuestions.questionsList, setting.cottonQuestions.answers])
 			    						){
 			    						cottonQuestionsPagingProcess(questionsWrapper.querySelector('#cotton_questions_right_page'), 1);
 			    					}else{
@@ -472,9 +561,8 @@
 			    					}
 			    					return false;
 			    				}else{
-			    					console.log(setting);
 			    					setting.cottonQuestions.questionsList.push(resultQuestions);
-			    					setting.cottonQuestions.answers.push(answer.value);
+			    					setting.cottonQuestions.answers.push(`#${answer.value}`);
 			    					questionsTextDelete(title, questionsArr, answer)
 					    			nowPage.textContent = `${nowPageValue + 1}`.padStart(2,'0');
 					    			maxPage.textContent = `${maxPageValue + 1}`.padStart(2,'0');
@@ -513,19 +601,19 @@
 
 							questionsWrapper.querySelector('#cotton_questions_page').textContent = `${paging}`.padStart(2,'0') ;
 							paging = paging - 1
+							console.log(paging);
 							if(setting.cottonQuestions.questionsList.hasOwnProperty(paging) && 
 								setting.cottonQuestions.answers.hasOwnProperty(paging)
 							){
 								textArr = setting.cottonQuestions.questionsList[paging].split('\n')
 								title.value = textArr[0];
 								questionsArr.value = textArr.map((e,i) => i == 0 ? '' : e.replaceAll('\t','')).join('\n').substring(1);
-								answer.value = setting.cottonQuestions.answers[paging];
+								answer.value = setting.cottonQuestions.answers[paging].substring(1);
 							}else{
 								title.value = ''
 								questionsArr.value = ''
 								answer.value = ''
 							}
-							
 						}
 					</script>
 				</div>
@@ -534,9 +622,76 @@
 		<!-- /layer -->
 
 	</div>
-	<canvas id="renderCanvas" style="touch-action: none; outline: none; width: 60%; height: 60%;" tabindex="1">
-    </canvas>
-   	<script type="text/javascript">
+	<div style="position: absolute; display: 'flex'; top: '1vh'; left: '-2vw'; gap: '1.2vw'; z-index: 1; width: 60%; height: 60%;">
+		<canvas id="renderCanvas" style="touch-action: none; outline: none; width: 100%; height: 100%;" tabindex="1">
+		</canvas>
+		<div id="chat_questions_view_wrapper" style="background-color: #ffffff99;height: 45%;display: none;">
+			<div class="chat_questions_view_item_wrapper">
+			</div>
+			<div class="chat_questions_view_item_wrapper">
+			</div>
+			<script type="text/javascript">
+				var chatQuestionsViewWrapper = document.querySelector('#chat_questions_view_wrapper');
+				var chatQuestionsViewItemWrapper = chatQuestionsViewWrapper.querySelectorAll('.chat_questions_view_item_wrapper')
+				var chatQuestionsChatGraph;
+				var questionUserSelectNumber;
+				function createChatWrapper(){
+					if(canvas.hasAttribute('is_canvas_run') === false ||
+						canvas.getAttribute('is_canvas_run') === 'N'
+					){
+						return;
+					}
+					setting.nowQuestionsInfo = {}
+					chatQuestionsViewWrapper.style.display = 'flex';
+					let questionsObj = setting[setting.gameSelectKey];
+					let page = questionsObj.page;
+					let questionsList = questionsObj.questionsList[page - 1].split('\n')
+					let questionsTilte = questionsList.splice(0,1)
+					questionsItemHtml = questionsList.map(e=>{
+						let questionsText = e.replaceAll('\t','')
+						let questionsUserSelect = questionsText.charAt(0);
+						
+						questionsText = questionsText.substring(3);
+						/*
+						let questionsItem = `
+											<label class="questions_user_select" data-text_value="${questionsText}">${questionsUserSelect}</label>
+											<span class="questions_user_select_number">0</span>
+											<svg class="chat_questions_chart">
+												<rect class="chat_questions_chart_graph" fill="${getRandomColor()}">
+											</svg>
+											`
+						*/
+						let label = Object.assign( document.createElement('label'), {className : "questions_user_select", textContent : questionsUserSelect} );
+						label.setAttribute('data-text_value', questionsText)
+						let span = Object.assign( document.createElement('span'), {className : "questions_user_select_number", textContent: 0});
+						let svg = Object.assign( document.createElement('svg'), {className : "chat_questions_chart"});
+						let rect = Object.assign( document.createElement('rect'), {className: "chat_questions_chart_graph", fill : getRandomColor()} );
+						svg.append(rect);
+						let div = document.createElement('div');
+						div.append(...[label, span, svg]);
+						
+						let obj = {'chartValueHTML' : rect, 'userSelectCountHTML' : span, 'chartValue' : 0, 'userSelectCount' : 0};
+						setting.nowQuestionsInfo[questionsUserSelect] = obj;
+						setting.nowQuestionsInfo[questionsText] = obj;
+						return div;
+					});
+					
+					chatQuestionsViewItemWrapper.forEach(e=>e.replaceChildren(...questionsItemHtml.splice(0,4)))
+				}
+				
+				function questionsRecordSave(title, [...data]){
+					while(questionsRecord.hasOwnProperty(title) == true){
+						title = title + '_';
+					}
+					setting.questionsRecord[title] = data.reduce((t,e,i)=>{
+						
+					},{})
+				}
+				
+			 </script>
+		</div>
+    </div>
+	<script type="text/javascript">
 	    var rgbTransForm = (rgb = [0,0,0]) => rgb.map(e=>e/256);
 	    
         const canvas = document.getElementById("renderCanvas");
@@ -544,16 +699,23 @@
         const engine = new BABYLON.Engine(canvas, true);
         
         var clickEvt = false;
-		const createScene = function() {
+        
+        var legalPad;
+        var text = [''];
+        var scene;
+        var padQuestionInfo;
+        var testCamera;
+		var createScene;
+		function View3DCreate() {
 	        //공간 선언
-	        const scene = new BABYLON.Scene(engine);
+	        scene = new BABYLON.Scene(engine);
 	        scene.autoClear = false
 	        //공간 배경 색상 설정
 	        scene.clearColor = new BABYLON.Color4(0, 0, 0, 0);
-	        
+
 	        //카메라의 3차원 위치 설정
 	        const alpha =  Math.PI/-2;
-	        const beta = Math.PI/3;
+	        const beta = Math.PI/3; 
 	        const radius = 17;
 	        const target = new BABYLON.Vector3(0, 5, 5);
 	            
@@ -561,13 +723,13 @@
 	        const camera = new BABYLON.ArcRotateCamera("Camera", alpha, beta, radius, target, scene);
 	        camera.attachControl(canvas, true);
 	        camera.setTarget(BABYLON.Vector3.Zero());
+	        camera.speed = 0.5
+	        testCamera = camera;
 	        //광원 생성
 	        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
 	        
-	        var legalPad = BABYLON.SceneLoader.ImportMeshAsync(null, "/model/","LegalPad_6.glb")//.then(e=>e.meshes[0].position.x = 15);
+	        legalPad = BABYLON.SceneLoader.ImportMeshAsync(null, "/model/","LegalPad_6.glb")//.then(e=>e.meshes[0].position.x = 15);
 
-	        //한줄 37글자 20라인까지
-	        var text = [''];
 	        var page = 1;
 	        var maxPage = 1;
 	        if(setting.gameSelectKey == 'devQuestions'){
@@ -579,7 +741,7 @@
 	        	maxPage = setting.cottonQuestions.questionsList.length;
 	        	text = setting.cottonQuestions.questionsList[page - 1].split('\n');
 	        }
-	        createText(legalPad);
+	        padQuestionInfo = createText();
 	    	var font = "bold 100px monospace";
 	    	
 	        var groundWidth = 4;
@@ -621,135 +783,262 @@
 	        groundPagingText.position.z = -5;
 	        groundPagingText.visibility = 1
 	        
+	        var groundVideoStart = BABYLON.MeshBuilder.CreateGround("video_start_button", {width: 2, height: 1, subdivisions: 25}, scene);;
+	        var textureVideoStart = new BABYLON.DynamicTexture("dynamic texture", {width:256, height:128}, scene);
+	        textureVideoStart.getContext();
+	        var materialVideoStart = new BABYLON.StandardMaterial("Mat", scene);
+	        materialVideoStart.diffuseTexture = textureVideoStart;
+	        groundVideoStart.material = materialVideoStart;
+	        textureVideoStart.drawText("시작", 60, 95, "bold 70px monospace", "red", "white", true, true);
+	        groundVideoStart.position.y = 99999;
+	        groundVideoStart.position.x = 6;
+	        groundVideoStart.position.z = -2;
+	        groundVideoStart.visibility = 0;
+	        
+	        var groundTimer =  BABYLON.MeshBuilder.CreateGround("timer", {width: 2, height: 1, subdivisions: 25}, scene);;
+	        var textureTimer = new BABYLON.DynamicTexture("dynamic texture", {width:512, height:256}, scene);
+	        textureTimer.getContext();
+	        var materialTimer = new BABYLON.StandardMaterial("Mat", scene);
+	        materialTimer.diffuseTexture = textureTimer;
+	        groundTimer.material = materialTimer;
+	        textureTimer.drawText('문제 시작', 5, 170, "bold 110px monospace", "black", "white", true, true);
+	        groundTimer.position.y = 0.5
+	        groundTimer.position.x = 4.5;
+	        groundTimer.position.z = 6;
+	        groundTimer.visibility = 1
+	        
+	        var groundAnswerSelect =  BABYLON.MeshBuilder.CreateGround("answer_select", {width: 2 , height: 1, subdivisions: 25}, scene);;
+	        var textureAnswerSelect= new BABYLON.DynamicTexture("dynamic texture", {width:512, height:256}, scene);
+	        textureAnswerSelect.getContext();
+	        var materialAnswerSelect= new BABYLON.StandardMaterial("Mat", scene);
+	        materialAnswerSelect.diffuseTexture = textureAnswerSelect;
+	        groundAnswerSelect.material = materialAnswerSelect;
+	        textureAnswerSelect.drawText('정답 선택', 5, 170, "bold 110px monospace", "black", "white", true, true);
+	        groundAnswerSelect.position.y = 0.5
+	        groundAnswerSelect.position.x = 8;
+	        groundAnswerSelect.position.z = 6;
+	        groundAnswerSelect.visibility = 1
+	        groundAnswerSelect.isAnswerSelect = false;
+	        
+	        
 	        groundNextText.actionManager = new BABYLON.ActionManager(scene);
 	        groundNextText.actionManager.registerAction( new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, (evt) => {
-	        	const targetQuestions = setting[setting.gameSelectKey];
-	        	if(targetQuestions.type != 2 && targetQuestions.type != -1){
-	        		targetQuestions.page++;
+	        	if(timer.isCustomRun){
+	        		modalLoader.createModalAlertText(['타이머가 돌고 있습니다.']);
+	        		return;
+	        	}
+	        	let targetQuestions = setting[setting.gameSelectKey];
+        		targetQuestions.page++;
+	        	
+        		if(targetQuestions.type != 2 && targetQuestions.type != -1){
 	        		if(targetQuestions.page >= targetQuestions.questionsList.length + 1){
 	        			targetQuestions.page = 1;
 	        		}
 	        		texturePagingText.drawText(`${targetQuestions.page.toString().padStart(2,'0')}/${targetQuestions.questionsList.length.toString().padStart(2,'0')}`, 12, 100, "bold 90px monospace", "black", "white", true, true);
-	        		text = setting.devQuestions.questionsList[targetQuestions.page - 1].split('\n');
+	        		text = targetQuestions.questionsList[targetQuestions.page - 1].split('\n');
+	        		padQuestionInfo = createText();
+	        		chatQuestionsViewWrapper.style.display = 'none';
+	        		if(setting.gameSelectKey == 'devQuestions' && targetQuestions.page == targetQuestions.questionsList.length){
+	        			groundVideoStart.visibility = 1;
+	        			groundVideoStart.position.y = 0.5;
+	        			chatQuestionsViewItemWrapper.forEach(e=>e.replaceChildren());
+	        		}else{
+	        			groundVideoStart.visibility = 0;
+	        			groundVideoStart.position.y = 99999;
+	        		}
 	        	}
 	        }));
 	        groundPrevText.actionManager = new BABYLON.ActionManager(scene);
 	        groundPrevText.actionManager.registerAction( new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, (evt) => {
-	        	const targetQuestions = setting[setting.gameSelectKey];
+	        	if(timer.isCustomRun){
+	        		modalLoader.createModalAlertText(['타이머가 돌고 있습니다.']);
+	        		return;
+	        	}
+	        	let targetQuestions = setting[setting.gameSelectKey];
+        		targetQuestions.page--;
 	        	if(targetQuestions.type != 2 && targetQuestions.type != -1){
-	        		targetQuestions.page--;
 	        		if(targetQuestions.page < 1){
-	        			targetQuestions.page = 7;
+	        			targetQuestions.page = targetQuestions.questionsList.length;
 	        		}
 	        		texturePagingText.drawText(`${targetQuestions.page.toString().padStart(2,'0')}/${targetQuestions.questionsList.length.toString().padStart(2,'0')}`, 12, 100, "bold 90px monospace", "black", "white", true, true);
-	        		text = setting.devQuestions.questionsList[targetQuestions.page - 1].split('\n');
-	        		createText(legalPad);
+	        		text = targetQuestions.questionsList[targetQuestions.page - 1].split('\n');
+	        		padQuestionInfo = createText();
+	        		chatQuestionsViewWrapper.style.display = 'none';
+	        		if(setting.gameSelectKey == 'devQuestions' && targetQuestions.page == targetQuestions.questionsList.length){
+	        			groundVideoStart.visibility = 1;
+	        			groundVideoStart.position.y = 0.5;
+	        			chatQuestionsViewItemWrapper.forEach(e=>e.replaceChildren());
+	        		}else{
+	        			groundVideoStart.visibility = 0;
+	        			groundVideoStart.position.y = 99999;
+	        		}
 	        	}
 	        }));
-	         
-	        /*    
-	        //해당 박스에 액션 매니저 설정
-	        box.actionManager = new BABYLON.ActionManager(scene);
-	        //이벤트 생성하기
-	        box.actionManager.registerAction(
-	        //클릭이벤트를 정의하기
-	        new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, 
-	        (evt) => {
+	        
+	        groundVideoStart.actionManager = new BABYLON.ActionManager(scene);
+	        groundVideoStart.actionManager.registerAction( new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, (evt) => {
 	        	console.log(evt);
-	        	const sourceBox = evt.meshUnderPointer;
-	            //sourceBox.position.x += 0.1;
-	            //sourceBox.position.y += 0.1;
-	                
-	            if(clickEvt){
-	            	let [r=0,g=0,b=0] = rgbTransForm([255, 153, 102]);
-	                let color2 = new BABYLON.Color3(r, b, g);
-	                boxMaterial.diffuseColor = color2
-	                console.log(color2)
-				}else{
-	            	let [r=0,g=0,b=0] = rgbTransForm([153, 255, 102]);
-	                let color = new BABYLON.Color3(r, g, b);
-	                boxMaterial.diffuseColor = color;
-	                console.log(color);
-	            }
-	            clickEvt = !clickEvt;
-
 	        }));
-	        */
-               //땅 오브젝트 생성하기
-               //const ground = BABYLON.MeshBuilder.CreateGround("ground", {width: 4, height: 4});
-               /*
-	        //땅의 위치 설정
-               ground.position.y = -2;
-               //땅의 색상 변경을 위해 질가 생성
-               const groundMaterial = new BABYLON.StandardMaterial("groundMaterial");
-               //색상 설정
-               let [r=0,g=0,b=0] = rgbTransForm([255, 051, 102]);
-               //질감의 색상 설정
-               groundMaterial.diffuseColor = new BABYLON.Color4(0, 0, 0, 0);
-               //현재 땅의 질감 덮어쓰기
-               ground.material = groundMaterial;
-               */
-               const xrPromise = scene.createDefaultXRExperienceAsync({
-                   floorMeshes: [legalPad]
-               });
+	        
+	        groundAnswerSelect.actionManager = new BABYLON.ActionManager(scene);
+	        groundAnswerSelect.actionManager.registerAction( new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, (evt) => {
+	        	if(groundAnswerSelect.isAnswerSelect == false){
+		        	groundAnswerSelect.isAnswerSelect = true;
+		        	cameraSetAndDetach(camera);
+		        	console.log(evt);
+		        	textureAnswerSelect.drawText('선택 취소', 5, 170, "bold 110px monospace", "black", "white", true, true);
+	        	}else if(groundAnswerSelect.isAnswerSelect == true){
+	        		groundAnswerSelect.isAnswerSelect = false;
+	        		camera.attachControl(canvas, true);
+	        		textureAnswerSelect.drawText('정답 선택', 5, 170, "bold 110px monospace", "black", "white", true, true);
+	        	}
+	        }));
+	        
+	        groundTimer.actionManager = new BABYLON.ActionManager(scene);
+	        groundTimer.actionManager.registerAction( new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, (evt) => {
+	        	let timerLayer = document.querySelector('#timer_setting_layer');
+	        	if(timer.inputMinute == 0){
+	        		timerLayer.style.display='flex';
+	        	}else{
+	        		timer.setCustomTimer(timerLayer);
+	        	}
+	        }));
+	        
+            const xrPromise = scene.createDefaultXRExperienceAsync({
+                floorMeshes: [legalPad]
+            });
 	        return xrPromise.then((xrExperience) => {
 	        	console.log("Done, WebXR is enabled.");
 	            return scene;
 			});
-	        function createText(legalPad){
-	        	legalPad.then(pad=>{
-		        	let heightLine = 380;
-	       			let index = 0
-	       			for(let i = 2 ; i < pad.meshes.length ; i++){
-	       				let viewText = text.hasOwnProperty(index) ? text[index] : '';
-	       				heightLine = heightLine + 50
-	       				var padDynamicTexture = new BABYLON.DynamicTexture("PadDynamicTexture", {width:2064, height:1032}, scene);
-	        			padDynamicTexture.getContext();
-	       				padDynamicTexture.drawText(viewText, 870, heightLine, "bold 30px comic", "#000000", "transparent", false, true);
-	        			var mat = new BABYLON.StandardMaterial("Mat", scene);
-	    		        mat.diffuseTexture = padDynamicTexture;
-	    		        mat.diffuseTexture.hasAlpha = true;
-	    		        pad.meshes[i].material = mat;
-	    		        index++;
-	       			}/*
-	       			text.forEach((e,i)=>{
-	       				heightLine = heightLine + 23
-	        			var padDynamicTexture = new BABYLON.DynamicTexture("PadDynamicTexture", {width:1032, height:516}, scene);
-	        			padDynamicTexture.getContext();
-	       				padDynamicTexture.drawText(e, 430, heightLine, "bold 20px comic", "#000000", "transparent", false, true);
-	        			var mat = new BABYLON.StandardMaterial("Mat", scene);
-	    		        mat.diffuseTexture = padDynamicTexture;
-	    		        mat.diffuseTexture.hasAlpha = true;
-	    		        pad.meshes[index].material = mat
-	    		        //console.log(pad.meshes[index].scaling);
-	    		        index++;
-	       			});*/
-	        	});
+	        function createVideoStartButton(command){
+
+	        }
+	        function cameraSetAndDetach(camera){
+	        	/*
+		        알파 : -1.5915287647531062
+		        베타 : 0.012399993896484374
+		        radius : 16.636576611690444
+		        target = 0 0 0
+		        */
+	        	camera.alpha = -1.570661301086402;
+	        	camera.beta = 0.001;
+	        	camera.radius = 16.636576611690444;
+	        	camera.target.x = 0;
+	        	camera.target.y = 0;
+	        	camera.target.z = 0;
+	        	camera.detachControl();
 	        }
         };
 
-        //Object.assign(canvas.style , {position: 'fixed', display: 'flex', top: '1vh', left: '-2vw', gap: '1.2vw', fontSize: '3vmax', color: 'white', alignItems: 'flex-end',  width: '38%', height: '30%', zIndex:999});
-      		Object.assign(canvas.style , {position: 'fixed', display: 'flex', top: '1vh', left: '-2vw', gap: '1.2vw', zIndex:1});
-       
-		function startGame(){
-			if(setting.gameSelectKey == - 1){
+        function createText(){
+   			let result = [];
+        	legalPad.then(pad=>{
+	        	let heightLine = 380;
+       			let index = 0
+       			for(let i = 2 ; i < pad.meshes.length ; i++){
+       				let viewText = text.hasOwnProperty(index) ? text[index] : '';
+       				heightLine = heightLine + 50
+       				var padDynamicTexture = new BABYLON.DynamicTexture("PadDynamicTexture", {width:2064, height:1032}, scene);
+        			padDynamicTexture.getContext();
+       				padDynamicTexture.drawText(viewText, 870, heightLine, "bold 30px comic", "#000000", "transparent", false, true);
+        			var mat = new BABYLON.StandardMaterial("Mat", scene);
+    		        mat.diffuseTexture = padDynamicTexture;
+    		        mat.diffuseTexture.hasAlpha = true;
+    		        pad.meshes[i].material = mat;
+    		        pad.meshes[i].questionEventHeightValue = heightLine;
+    		        pad.meshes[i].questionTextValue = viewText;
+    		        pad.meshes[i].actionManager = new BABYLON.ActionManager(scene);
+    		        pad.meshes[i].actionManager.registerAction( new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, (evt) => {
+    		        	console.log(Math.floor(evt.pointerY/32) - 2 )
+    		        	console.log(padQuestionInfo[Math.floor(evt.pointerY/32) - 2])
+    		        }));
+    		        index++;
+    		        result.push(pad.meshes[i]);
+       			}
+        	});
+        	return result;
+        }
+
+		function startGame(obj){
+			if(setting.gameSelectKey == - 1 ){
 				modalLoader.createModalAlertText(['게임을 셋팅해주세요.']);
+				setting.isStartGame = false;
+				return;
+			}else if(setting.gameSelectKey == 'cottonQuestions' && setting.cottonQuestions.questionsList.length == 0){
+				modalLoader.createModalAlertText(['문제를 만들어주세요']);
+				setting.isStartGame = false;
 				return;
 			}
 			
 			if(canvas.hasAttribute('is_canvas_run') === false){
-		        createScene().then(sceneToRender => {
+		        createScene = View3DCreate();
+		        createScene.then(sceneToRender => {
 		            engine.runRenderLoop(() => sceneToRender.render());
 		            canvas.setAttribute('is_canvas_run', 'Y')
 		        });
+				obj.textContent = '게임 on'
+				setting.isStartGame = true;
 			}else if(canvas.getAttribute('is_canvas_run') === 'N'){
+		        createScene = View3DCreate();
+		        createScene.then(sceneToRender => {
+		            engine.runRenderLoop(() => sceneToRender.render());
+		            canvas.setAttribute('is_canvas_run', 'Y')
+		        });
 				canvas.style.display = 'flex';
-				canvas.setAttribute('is_canvas_run', 'Y')
+				//let targetQuestions = setting[setting.gameSelectKey];
+				//text = targetQuestions.questionsList[targetQuestions.page - 1].split('\n');
+				//padQuestionInfo = createText();
+				obj.textContent = '게임 on'
+				setting.isStartGame = true;
 			}else if(canvas.getAttribute('is_canvas_run') === 'Y'){
+				createScene.then(sceneToRender=>sceneToRender.dispose());
 				canvas.style.display = 'none';
 				canvas.setAttribute('is_canvas_run', 'N')
+				obj.textContent = '게임 off'
+				setting.isStartGame = false;
 			}
 		}
-     	</script>
+		function reloadScene(){
+			if(canvas.getAttribute('is_canvas_run') === 'Y'){
+				createScene.then(sceneToRender=>{
+					sceneToRender.dispose();
+					createScene = View3DCreate();
+				}).then(()=>{
+					createScene.then(sceneToRender => {
+			            engine.runRenderLoop(() => sceneToRender.render());
+			        });
+				});
+			}
+		}
+	</script>
+	<div id="video_wrapper" style="display: none;">
+		<video id="video_now" src="video/criticism/question_criticism.mp4" style="position: absolute;width: 100%;height: 100%;top: 0;left: 0;background: black;">
+     	</video>
+		<label style="position: absolute;right: -4vh;top: 13vh;transform: rotate(-90deg);">
+    			<input type="range" min="0" max="1" value="1" step="0.1" onchange="volumeController(this)" oninput="volumeController(this)">
+    			<img src="images/volume.png" style="width: 2vw;height: 3vh;transform: rotate(90deg);">
+   		</label>
+   		<script type="text/javascript">
+   			function volumeController(obj){
+   				obj.parentElement.querySelector('#video_now').volume = obj.value;
+   			}
+   		</script>
+  		<div id="video_question_wrapper" style="width:100%; height:100%; background-color:black; opacity:0.4; position:absolute; display:none;">
+  			<div id=video_question_select>
+  			</div>
+  			<div id=video_question_select>
+  			</div>
+  			<div id=video_question_select>
+  			</div>
+   		</div>
+   		<script type="text/javascript">
+   			function videoQuestionStart(){
+   				canvas.setAttribute('is_canvas_run', 'Y');
+   				startGame(document.querySelector('#game_start_button'));
+   				
+   			}
+   		</script>
+   	</div>
 </body>
 </html>
