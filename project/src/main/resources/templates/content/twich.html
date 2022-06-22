@@ -89,12 +89,16 @@
 		font-size: 1.2vmax;
 		font-weight: bold;
 	}
-	svg.chat_questions_chart{
+	.chat_questions_chart{
 		width: 65%;
 		height: 2vh;
 	}
-	svg.chat_questions_chart > rect.chat_questions_chart_graph{
+	.chat_questions_chart > .chat_questions_chart_graph{
 		height: 100%;
+	}
+	.chat_questions_chart_statistics_wrapper{
+		display:'flex'; 
+		align-items:'center';
 	}
 </style>
 <script type="text/javascript">
@@ -111,6 +115,7 @@
 		questionsRecord : {},
 		nowQuestionsInfo : {},
 		nowQuestionsTotalCount : 0,
+		chatSeparator : 'ㄹ',
 		devQuestions : {
 			questionsList : questions.devQuestions,
 			pageMax : 1,
@@ -194,7 +199,7 @@
 	    
 	    const checkGameChatFilter = (chatInfo) => {
 	    	return new Promise(resolve =>{
-		    	if(timer.isCustomRun && canvas.getAttribute('is_canvas_run') === 'Y' && chatInfo.message.charAt(0) === '#'){
+		    	if(timer.isCustomRun && canvas.getAttribute('is_canvas_run') === 'Y' && chatInfo.message.charAt(0) === setting.chatSeparator){
 		    		return setTimeout(resolve(chatInfo), 1);
 		    	}
 				return setTimeout(resolve(''), 1);
@@ -223,7 +228,7 @@
 		    		
 		    		
 		    		targetObject.chartValue = targetObject.userSelectCount / setting.nowQuestionsTotalCount
-		    		targetObject.chartValueHTML.width = `${targetObject.chartValue * 100}%`
+		    		targetObject.chartValueHTML.style.width = `${targetObject.chartValue * 100}%`
 	    		}
 				return setTimeout(resolve(''), 1);
 	    	});
@@ -550,7 +555,7 @@
 			    							    				
 			    				if(thisPageIsExist){
 			    					setting.cottonQuestions.questionsList[nowPageValue - 1] = resultQuestions;
-			    					setting.cottonQuestions.answers[nowPageValue - 1] = `#${answer.value}`;
+			    					setting.cottonQuestions.answers[nowPageValue - 1] = `${setting.chatSeparator}${answer.value}`;
 			    					nowPage.textContent = `${nowPageValue + 1}`.padStart(2,'0');
 			    					if(setting.thisPageIsExist(nowPageValue, [setting.cottonQuestions.questionsList, setting.cottonQuestions.answers])
 			    						){
@@ -647,6 +652,7 @@
 					let page = questionsObj.page;
 					let questionsList = questionsObj.questionsList[page - 1].split('\n')
 					let questionsTilte = questionsList.splice(0,1)
+					setting.nowQuestionsInfo.all = [];
 					questionsItemHtml = questionsList.map(e=>{
 						let questionsText = e.replaceAll('\t','')
 						let questionsUserSelect = questionsText.charAt(0);
@@ -664,15 +670,18 @@
 						let label = Object.assign( document.createElement('label'), {className : "questions_user_select", textContent : questionsUserSelect} );
 						label.setAttribute('data-text_value', questionsText)
 						let span = Object.assign( document.createElement('span'), {className : "questions_user_select_number", textContent: 0});
-						let svg = Object.assign( document.createElement('svg'), {className : "chat_questions_chart"});
-						let rect = Object.assign( document.createElement('rect'), {className: "chat_questions_chart_graph", fill : getRandomColor()} );
-						svg.append(rect);
-						let div = document.createElement('div');
-						div.append(...[label, span, svg]);
+						let chartWrapper = Object.assign( document.createElement('div'), {className : "chat_questions_chart"});
+						let chartGraph = Object.assign( document.createElement('div'), {className : "chat_questions_chart_graph"});
+						chartWrapper.append(chartGraph);
+						Object.assign(chartGraph.style,{backgroundColor:getRandomColor(),width:'0%'});
 						
-						let obj = {'chartValueHTML' : rect, 'userSelectCountHTML' : span, 'chartValue' : 0, 'userSelectCount' : 0};
+						let div = Object.assign(document.createElement('div'),{className:'chat_questions_chart_statistics_wrapper'});
+						div.append(...[label, span, chartWrapper]);
+						
+						let obj = {'chartValueHTML' : chartGraph, 'userSelectCountHTML' : span, 'chartValue' : 0, 'userSelectCount' : 0};
 						setting.nowQuestionsInfo[questionsUserSelect] = obj;
 						setting.nowQuestionsInfo[questionsText] = obj;
+						setting.nowQuestionsInfo.all.push(obj);
 						return div;
 					});
 					
