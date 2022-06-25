@@ -115,5 +115,9 @@ public class Bot {
     public SimpleEventHandler getTwichEventHandler() {
     	return this.eventHandler;
     }
+    
+    public void close() {
+    	twitchClient.close();
+    }
 
 }

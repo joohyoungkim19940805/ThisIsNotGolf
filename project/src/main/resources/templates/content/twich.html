@@ -109,6 +109,8 @@
 	const getRandomColor = () => randomColor[Math.floor( Math.random() * (Math.floor(randomColor.length-1))) ];
 	const questions = new Questions();
 	var webSocket;
+	//회사컴 cpu =  Intel(R) Core(TM) i7-8665U CPU @ 1.90GHz   2.11 GHz, gpu = Intel(R) UHD Graphics 620
+	//
 	const setting = {
 		chatYn : true,
 		timerYn : true,
@@ -141,10 +143,10 @@
 			type : 2,
 		},
 		thisPageIsExist : function(page, obj){
-			console.log(obj);
-			console.log(page);
-			console.log(typeof page)
-			console.log(obj.filter(e=>e.hasOwnProperty(page)).length == obj.length)
+			//console.log(obj);
+			//console.log(page);
+			//console.log(typeof page)
+			//console.log(obj.filter(e=>e.hasOwnProperty(page)).length == obj.length)
 			return obj.filter(e=>e.hasOwnProperty(page)).length == obj.length;
 		}
 	}
@@ -205,7 +207,7 @@
 	    
 	    const checkGameChatFilter = (chatInfo) => {
 	    	return new Promise(resolve =>{
-		    	if(timer.isCustomRun && canvas.getAttribute('is_canvas_run') === 'Y' /*&& chatInfo.message.substring(0,setting.chatSeparator.length) === setting.chatSeparator*/){
+		    	if(timer.isCustomRun && canvas.getAttribute('is_canvas_run') === 'Y' && chatInfo.message.substring(0,setting.chatSeparator.length) === setting.chatSeparator){
 		    		return setTimeout(resolve(chatInfo), 1);
 		    	}
 				//return setTimeout(resolve(''), 1);
@@ -214,7 +216,7 @@
 	    
 	    const chatQuestionsMapperFilter = (chatInfo) => {
 	    	return new Promise(resolve =>{
-		    	if(chatInfo && ( setting.nowQuestionsInfo.hasOwnProperty(chatInfo.message.substring(1)) && setting[setting.gameSelectKey].isSubjective[setting[setting.gameSelectKey].page - 1] == false || setting[setting.gameSelectKey].isSubjective[setting[setting.gameSelectKey].page - 1] == true )){
+		    	if(chatInfo && (( setting.nowQuestionsInfo.hasOwnProperty(chatInfo.message.substring(setting.chatSeparator.length).charAt(0)) && setting[setting.gameSelectKey].isSubjective[setting[setting.gameSelectKey].page - 1] == false ) || setting[setting.gameSelectKey].isSubjective[setting[setting.gameSelectKey].page - 1] == true )){
 		    		return setTimeout(resolve(chatInfo), 1);
 		    	}
 				//return setTimeout(resolve(''), 1);
@@ -224,16 +226,36 @@
 	    const chatUserSelectMath = (chatInfo) => {
 	    	return new Promise(resolve =>{
 	    		if(chatInfo){
-		    		let message = chatInfo.message.substring(1);
-		    		let targetObject = setting.nowQuestionsInfo[message];
-		    		
-		    		targetObject.userSelectCount++;
-		    		targetObject.userSelectCountHTML.textContent = targetObject.userSelectCount;
-		    		setting.nowQuestionsTotalCount = Object.values(setting.nowQuestionsInfo).reduce((t,e)=>{
-		    			t += e.userSelectCount;
-		    			return t;
-		    		}, 0); 
-
+	    			let isSubjective = setting[setting.gameSelectKey].isSubjective[setting[setting.gameSelectKey].page - 1];
+	    			if(isSubjective){
+	    				//answrTextObj
+	    				if(setting.nowQuestionsInfo.answrTextObj.hasOwnProperty(chatInfo.message)){
+	    					setting.nowQuestionsInfo.answrTextObj[chatInfo.message]++;	
+	    				}else{
+	    					setting.nowQuestionsInfo.answrTextObj[chatInfo.message] = 1;
+	    				}
+	    				let answerListSort = Object.entries(setting.nowQuestionsInfo.answrTextObj).sort((a,b)=>b[1] - a[1]);
+	    				[0,1,2,3,4,5,6,7].forEach(e=>{
+	    					let targetObject = setting.nowQuestionsInfo[i];
+	    					targetObject.userSelectCount = answerListSort[i][1];
+	    					targetObject.userSelectCountHTML.textContent = answerListSort[i][1];
+	    					targetObject.questionsLabel.textContent = answerListSort[i][0];
+	    				})
+    					setting.nowQuestionsTotalCount = answerListSort.reduce((t,e) => {
+    						t += Number(e[1]);
+    						return t;
+    					}, 0);
+	    			}else{
+			    		let message = chatInfo.message.substring(setting.chatSeparator.length).charAt(0);
+			    		let targetObject = setting.nowQuestionsInfo[message];
+			    		
+			    		targetObject.userSelectCount++;
+			    		targetObject.userSelectCountHTML.textContent = targetObject.userSelectCount;
+			    		setting.nowQuestionsTotalCount = Object.values(setting.nowQuestionsInfo).reduce((t,e)=>{
+			    			t += e.userSelectCount;
+			    			return t;
+			    		}, 0); 
+	    			}
 					return setTimeout(resolve(true), 1);
 	    		}
 				//return setTimeout(resolve(''), 1);
@@ -536,7 +558,7 @@
 				<div class="cotton_questions_content" style="display: grid;width: 100%;text-align: center;text-align: -webkit-center;gap: 5%; height: 47vh;">
 					<input id="title" class="cotton_input_questions_content" data-empty_message="제목 내용" type="text" min="1" placeholder="제목" step="0.01" maxlength="43" style="width: 100%;">
 					<textarea id="questions" class="cotton_input_questions_content" data-empty_message="문제 내용"rows="13" cols="37" placeholder="문제 내용 (500글자 제한)" style="font-size: 1vmax;font-weight: bold; display: none;" maxlength="500"></textarea>
-					<div class="cotton_questions_multiple_choice" style="display: grid;gap: 3%;">
+					<div class="cotton_questions_multiple_choice" style="display: grid;gap: 0.5vh;font-size: 0.8vmax;">
 						<label style="display: flex;background-color: wheat;">
 						<input class="cotton_questions_multiple_choice_answer" type="checkbox" value=1 onclick="cottonQuestionsMultipleChoiceAnswer(this)">1번<input class="multiple_choice_text" type="text" data-index="0" maxlength="43" style="width: 91%;" placeholder="정답에 체크해주세요">
 					    </label>
@@ -644,7 +666,7 @@
 			    						alertMessage.push('*정답이 선택되지 않음*')
 			    					}
 			    					let answerIndex = [...multipleChoiceAnswerList].findIndex(e=>e.checked);
-			    					if(multipleChoiceInputList[answerIndex].value == ''){
+			    					if(multipleChoiceInputList[answerIndex] != undefined && multipleChoiceInputList[answerIndex].value == ''){
 			    						alertMessage.push('*선택된 정답이 내 여친임*');
 			    					}
 			    					if(alertMessage.length > 1){
@@ -793,23 +815,11 @@
 					let questionsObj = setting[setting.gameSelectKey];
 					let page = questionsObj.page;
 					let questionsList = questionsObj.questionsList[page - 1].split('\n')
-					let questionsTilte = questionsList.splice(0,1)
-					questionsItemHtml = questionsList.map((e, i)=>{
-						let questionsText = e.replaceAll('\t','')
-						let questionsUserSelect = questionsText.charAt(0);
-						/*
-						let questionsItem = `
-											<label class="questions_user_select" data-text_value="${questionsText}">${questionsUserSelect}</label>
-											<span class="questions_user_select_number">0</span>
-											<svg class="chat_questions_chart">
-												<rect class="chat_questions_chart_graph" fill="${getRandomColor()}">
-											</svg>
-											`
-						*/
-
-						if(questionsObj.isSubjective[page - 1] == true){
-							let label = Object.assign( document.createElement('label'), {className : "questions_label", textContent : `${questionsText} : `} );
-							label.setAttribute('data-text_value', questionsText)
+					let questionsTilte = questionsList.splice(0,1);
+					let questionsItemHtml;
+					if(questionsObj.isSubjective[page - 1]){
+						questionsItemHtml = [0,1,2,3,4,5,6,7].map((e,i)=>{
+							let label = Object.assign( document.createElement('label'), {className : "questions_label", textContent : ''} );
 							let span = Object.assign( document.createElement('span'), {className : "questions_user_select_number", textContent: 0});
 							let chartWrapper = Object.assign( document.createElement('div'), {className : "chat_questions_chart"});
 							let chartGraph = Object.assign( document.createElement('div'), {className : "chat_questions_chart_graph"});
@@ -819,27 +829,40 @@
 							let div = Object.assign(document.createElement('div'),{className:'chat_questions_chart_statistics_wrapper'});
 							div.append(...[label, span, chartWrapper]);
 							
-							let obj = {'chartValueHTML' : chartGraph, 'userSelectCountHTML' : span, 'chartValue' : 0, 'userSelectCount' : 0};
-							setting.nowQuestionsInfo[questionsText] = obj;
+							let obj = {'questionsLabel':label, 'chartValueHTML' : chartGraph, 'userSelectCountHTML' : span, 'chartValue' : 0, 'userSelectCount' : 0};
+							setting.nowQuestionsInfo[i] = obj;
+							setting.nowQuestionsInfo.answrTextObj = {};
 							return div;
-						}else{
-							let label = Object.assign( document.createElement('label'), {className : "questions_user_select", textContent : questionsUserSelect} );
-							label.setAttribute('data-text_value', questionsText)
-							let span = Object.assign( document.createElement('span'), {className : "questions_user_select_number", textContent: 0});
-							let chartWrapper = Object.assign( document.createElement('div'), {className : "chat_questions_chart"});
-							let chartGraph = Object.assign( document.createElement('div'), {className : "chat_questions_chart_graph"});
-							chartWrapper.append(chartGraph);
-							Object.assign(chartGraph.style,{backgroundColor:getRandomColor(),width:'0%'});
-							
-							let div = Object.assign(document.createElement('div'),{className:'chat_questions_chart_statistics_wrapper'});
-							div.append(...[label, span, chartWrapper]);
-							
-							let obj = {'chartValueHTML' : chartGraph, 'userSelectCountHTML' : span, 'chartValue' : 0, 'userSelectCount' : 0};
-							setting.nowQuestionsInfo[questionsUserSelect] = obj;
-							return div;
-						}
-
-					});
+						})
+					}else{
+						questionsItemHtml = questionsList.map((e, i)=>{
+							let questionsText = e.replaceAll('\t','')
+							let questionsUserSelect = questionsText.charAt(0);
+							/*
+							let questionsItem = `
+												<label class="questions_user_select" data-text_value="${questionsText}">${questionsUserSelect}</label>
+												<span class="questions_user_select_number">0</span>
+												<svg class="chat_questions_chart">
+													<rect class="chat_questions_chart_graph" fill="${getRandomColor()}">
+												</svg>
+												`
+							*/
+								let label = Object.assign( document.createElement('label'), {className : "questions_user_select", textContent : questionsUserSelect} );
+								label.setAttribute('data-text_value', questionsText)
+								let span = Object.assign( document.createElement('span'), {className : "questions_user_select_number", textContent: 0});
+								let chartWrapper = Object.assign( document.createElement('div'), {className : "chat_questions_chart"});
+								let chartGraph = Object.assign( document.createElement('div'), {className : "chat_questions_chart_graph"});
+								chartWrapper.append(chartGraph);
+								Object.assign(chartGraph.style,{backgroundColor:getRandomColor(),width:'0%'});
+								
+								let div = Object.assign(document.createElement('div'),{className:'chat_questions_chart_statistics_wrapper'});
+								div.append(...[label, span, chartWrapper]);
+								
+								let obj = {'chartValueHTML' : chartGraph, 'userSelectCountHTML' : span, 'chartValue' : 0, 'userSelectCount' : 0};
+								setting.nowQuestionsInfo[questionsUserSelect] = obj;
+								return div;
+						});
+					}
 					
 					chatQuestionsViewItemWrapper.forEach(e=>e.replaceChildren(...questionsItemHtml.splice(0,4)))
 				}
@@ -978,7 +1001,7 @@
 	        var materialAnswerSelect= new BABYLON.StandardMaterial("Mat", scene);
 	        materialAnswerSelect.diffuseTexture = textureAnswerSelect;
 	        groundAnswerSelect.material = materialAnswerSelect;
-	        textureAnswerSelect.drawText('정답 선택', 5, 170, "bold 110px monospace", "black", "white", true, true);
+	        textureAnswerSelect.drawText('정답 공개', 5, 170, "bold 110px monospace", "black", "white", true, true);
 	        groundAnswerSelect.position.y = 0.5
 	        groundAnswerSelect.position.x = 8;
 	        groundAnswerSelect.position.z = 6;
@@ -1047,16 +1070,43 @@
 	        
 	        groundAnswerSelect.actionManager = new BABYLON.ActionManager(scene);
 	        groundAnswerSelect.actionManager.registerAction( new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, (evt) => {
-	        	if(groundAnswerSelect.isAnswerSelect == false){
-		        	groundAnswerSelect.isAnswerSelect = true;
-		        	cameraSetAndDetach(camera);
-		        	console.log(evt);
-		        	textureAnswerSelect.drawText('선택 취소', 5, 170, "bold 110px monospace", "black", "white", true, true);
-	        	}else if(groundAnswerSelect.isAnswerSelect == true){
-	        		groundAnswerSelect.isAnswerSelect = false;
-	        		camera.attachControl(canvas, true);
-	        		textureAnswerSelect.drawText('정답 선택', 5, 170, "bold 110px monospace", "black", "white", true, true);
-	        	}
+	        	cameraSetAndDetach(camera);
+	        	let isSubjective = setting[setting.gameSelectKey].isSubjective[setting[setting.gameSelectKey].page - 1];
+				if(isSubjective){
+					
+				}else{
+					legalPad.then(pad=>{
+						let heightLine = 380;
+		       			let index = 0
+
+		       			for(let i = 2 ; i < pad.meshes.length ; i++){
+		       				let viewText = text.hasOwnProperty(index) ? text[index] : '';
+		       				heightLine = heightLine + 50
+		       				let padDynamicTexture = new BABYLON.DynamicTexture("PadDynamicTexture", {width:2064, height:1032}, scene);
+		        			padDynamicTexture.getContext();
+		       				padDynamicTexture.drawText(viewText, 870, heightLine, "bold 30px comic", i!=2?"red":"black", "transparent", false, true);
+		        			let mat = new BABYLON.StandardMaterial("Mat", scene);
+		    		        mat.diffuseTexture = padDynamicTexture;
+		    		        mat.diffuseTexture.hasAlpha = true;
+		    		        pad.meshes[i].material = mat;
+		    		        pad.meshes[i].questionEventHeightValue = heightLine;
+		    		        pad.meshes[i].questionTextValue = viewText;
+		    		        index++;
+		       			}
+		       			console.log(pad.meshes[3].questionTextValue);
+						let targetIndex = setting[setting.gameSelectKey].answers[setting[setting.gameSelectKey].page - 1]
+						let targetQuestion = pad.meshes[ targetIndex + 2 ]
+						console.log(targetQuestion)
+						let answerText = new BABYLON.DynamicTexture("PadDynamicTexture", {width:2064, height:1032}, scene);
+						answerText.getContext();
+						answerText.drawText(targetQuestion.questionTextValue, 870, targetQuestion.questionEventHeightValue, "bold 30px comic", 'green', "transparent", false, true);
+	        			let answerMat = new BABYLON.StandardMaterial("Mat", scene);
+	        			answerMat.diffuseTexture = answerText;
+	        			answerMat.diffuseTexture.hasAlpha = true;
+	    		        targetQuestion.material = answerMat;
+					});
+				}
+        	
 	        }));
 	        
 	        groundTimer.actionManager = new BABYLON.ActionManager(scene);
@@ -1079,45 +1129,42 @@
 	        function createVideoStartButton(command){
 
 	        }
+	        
 	        function cameraSetAndDetach(camera){
-	        	/*
-		        알파 : -1.5915287647531062
-		        베타 : 0.012399993896484374
-		        radius : 16.636576611690444
-		        target = 0 0 0
-		        */
+	        	
+		        //알파 : -1.5915287647531062
+		        //베타 : 0.012399993896484374
+		        //radius : 16.636576611690444
+		        //target = 0 0 0
+		        
 	        	camera.alpha = -1.570661301086402;
 	        	camera.beta = 0.001;
 	        	camera.radius = 16.636576611690444;
 	        	camera.target.x = 0;
 	        	camera.target.y = 0;
 	        	camera.target.z = 0;
-	        	camera.detachControl();
+	        	//camera.detachControl();
 	        }
+	        
         };
 
-        function createText(){
+        function createText(textColor, startNum=2){
    			let result = [];
         	legalPad.then(pad=>{
 	        	let heightLine = 380;
        			let index = 0
-       			for(let i = 2 ; i < pad.meshes.length ; i++){
+       			for(let i = startNum ; i < pad.meshes.length ; i++){
        				let viewText = text.hasOwnProperty(index) ? text[index] : '';
        				heightLine = heightLine + 50
-       				var padDynamicTexture = new BABYLON.DynamicTexture("PadDynamicTexture", {width:2064, height:1032}, scene);
+       				let padDynamicTexture = new BABYLON.DynamicTexture("PadDynamicTexture", {width:2064, height:1032}, scene);
         			padDynamicTexture.getContext();
-       				padDynamicTexture.drawText(viewText, 870, heightLine, "bold 30px comic", "#000000", "transparent", false, true);
-        			var mat = new BABYLON.StandardMaterial("Mat", scene);
+       				padDynamicTexture.drawText(viewText, 870, heightLine, "bold 30px comic", textColor ? textColor : "#000000", "transparent", false, true);
+        			let mat = new BABYLON.StandardMaterial("Mat", scene);
     		        mat.diffuseTexture = padDynamicTexture;
     		        mat.diffuseTexture.hasAlpha = true;
     		        pad.meshes[i].material = mat;
     		        pad.meshes[i].questionEventHeightValue = heightLine;
     		        pad.meshes[i].questionTextValue = viewText;
-    		        pad.meshes[i].actionManager = new BABYLON.ActionManager(scene);
-    		        pad.meshes[i].actionManager.registerAction( new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, (evt) => {
-    		        	console.log(Math.floor(evt.pointerY/32) - 2 )
-    		        	console.log(padQuestionInfo[Math.floor(evt.pointerY/32) - 2])
-    		        }));
     		        index++;
     		        result.push(pad.meshes[i]);
        			}
@@ -1160,7 +1207,7 @@
 			}else if(canvas.getAttribute('is_canvas_run') === 'Y'){
 				createScene.then(sceneToRender=>sceneToRender.dispose());
 				canvas.style.display = 'none';
-				document.querySelector('#chat_questions_view_wrapper').style.display = 'none;'
+				document.querySelector('#chat_questions_view_wrapper').style.display = 'none';
 				canvas.setAttribute('is_canvas_run', 'N')
 				obj.textContent = '게임 off'
 				setting.isStartGame = false;

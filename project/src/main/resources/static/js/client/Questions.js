@@ -69,10 +69,10 @@ class Questions{
 	}
 	get devAnswer(){
 		return [
-				5,
 				3,
-				2,
 				7,
+				5,
+				2,
 				5
 				];
 							
