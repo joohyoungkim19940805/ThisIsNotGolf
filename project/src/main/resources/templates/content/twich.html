@@ -96,10 +96,13 @@
 	.chat_questions_chart > .chat_questions_chart_graph{
 		height: 100%;
 	}
-	.chat_questions_chart_statistics_wrapper{
-		display:'flex'; 
-		align-items:'center';
-	}
+	.questions_label{
+		display: inline-block;
+	    width: 26vw;
+	    overflow-x: hidden;
+	    white-space: nowrap;
+	    text-overflow: ellipsis;
+    }
 </style>
 <script type="text/javascript">
 	const randomColor = ['#ffffff','#fff5ee','#fffafa','#f8f8ff','#fffaf0','#f5f5f5','#f0f8ff','#f0ffff','#fdf5e6','#f5fffa','#ffefd5','#ffdab9','#faf0e6','#eee8aa','#ffe4e1','#ffe4b5','#ffdead','#d2b48c','#f5deb3','#fafad2','#ffffe0','#fff8dc','#faebd7','#f5f5dc','#fffacd','#fffff0','#f0e68c','#e6e6fa','#fff0f5','#ffe4c4','#ffebcd','#deb887','#cd853f','#00ced1','#00bfff','#7fffd4','#1e90ff','#00ffff','#f0fff0','#87cefa','#afeeee','#e0ffff','#add8e6','#b0c4de','#40e0d0','#48d1cc','#00ffff','#b0e0e6','#87ceeb','#4169e1','#ff00ff','#ff00ff','#c71585','#dc143c','#ff1493','#ffb6c1','#ff69b4','#ffc0cb','#dda0dd','#ee82ee','#d8bfd8','#da70d6','#a52a2a','#e9967a','#f08080','#cd5c5c','#ffa07a','#db7093','#f4a460','#fa8072','#ff6347','#ff4500','#ff0000','#b22222','#d2691e','#bc8f8f','#ff7f50','#ff8c00','#ffa500','#b8860b','#ffd700','#ffff00','#7fff00','#7cfc00','#00ff00','#32cd32','#00ff7f','#3cb371','#adff2f','#8fbc8f','#90ee90','#98fb98','#2e8b57','#00fa9a','#20b2aa','#66cdaa','#6b8e23','#bdb76b','#daa520'];
@@ -115,13 +118,14 @@
 		questionsRecord : {},
 		nowQuestionsInfo : {},
 		nowQuestionsTotalCount : 0,
-		chatSeparator : 'ㄹ',
+		chatSeparator : '',
 		devQuestions : {
 			questionsList : questions.devQuestions,
 			pageMax : 1,
 			page : 1,
 			type : 0,
 			answers : questions.devAnswer,
+			isSubjective : [false,false,false,false,false],
 		},
 		cottonQuestions : {
 			questionsList : [],
@@ -129,6 +133,7 @@
 			page : 1,
 			type : 1,
 			answers : [],
+			isSubjective : [],
 		},
 		twentyHills :{
 			questionsCount : 0,
@@ -162,7 +167,8 @@
 	        	}
 	        	//console.log(data.chat)
 	        	checkGameChatFilter(data.chat).then((chatInfo)=>chatQuestionsMapperFilter(chatInfo))
-	        								.then((chatInfo)=>chatStatistics(chatInfo));
+	        								.then((chatInfo)=>chatUserSelectMath(chatInfo))
+	        								.then((isMathSuccess)=>chatStatistics(isMathSuccess));
 	        }else if(data.hasOwnProperty('subscription')){
 	        	console.log(data);
 	        }else if(data.hasOwnProperty('follow')){
@@ -199,38 +205,50 @@
 	    
 	    const checkGameChatFilter = (chatInfo) => {
 	    	return new Promise(resolve =>{
-		    	if(timer.isCustomRun && canvas.getAttribute('is_canvas_run') === 'Y' && chatInfo.message.charAt(0) === setting.chatSeparator){
+		    	if(timer.isCustomRun && canvas.getAttribute('is_canvas_run') === 'Y' /*&& chatInfo.message.substring(0,setting.chatSeparator.length) === setting.chatSeparator*/){
 		    		return setTimeout(resolve(chatInfo), 1);
 		    	}
-				return setTimeout(resolve(''), 1);
+				//return setTimeout(resolve(''), 1);
 	    	});
 	    }
 	    
 	    const chatQuestionsMapperFilter = (chatInfo) => {
 	    	return new Promise(resolve =>{
-		    	if(chatInfo !== '' && setting.nowQuestionsInfo.hasOwnProperty(chatInfo.message.substring(1))){
+		    	if(chatInfo && ( setting.nowQuestionsInfo.hasOwnProperty(chatInfo.message.substring(1)) && setting[setting.gameSelectKey].isSubjective[setting[setting.gameSelectKey].page - 1] == false || setting[setting.gameSelectKey].isSubjective[setting[setting.gameSelectKey].page - 1] == true )){
 		    		return setTimeout(resolve(chatInfo), 1);
 		    	}
-				return setTimeout(resolve(''), 1);
+				//return setTimeout(resolve(''), 1);
 	    	});
 	    }
 	    
-	    const chatStatistics = (chatInfo) => {
+	    const chatUserSelectMath = (chatInfo) => {
 	    	return new Promise(resolve =>{
-	    		if(chatInfo !== ''){
+	    		if(chatInfo){
 		    		let message = chatInfo.message.substring(1);
 		    		let targetObject = setting.nowQuestionsInfo[message];
 		    		
 		    		targetObject.userSelectCount++;
 		    		targetObject.userSelectCountHTML.textContent = targetObject.userSelectCount;
-		    		setting.nowQuestionsTotalCount += targetObject.userSelectCount;
-		    		
-		    		
-		    		
-		    		targetObject.chartValue = targetObject.userSelectCount / setting.nowQuestionsTotalCount
-		    		targetObject.chartValueHTML.style.width = `${targetObject.chartValue * 100}%`
+		    		setting.nowQuestionsTotalCount = Object.values(setting.nowQuestionsInfo).reduce((t,e)=>{
+		    			t += e.userSelectCount;
+		    			return t;
+		    		}, 0); 
+
+					return setTimeout(resolve(true), 1);
 	    		}
-				return setTimeout(resolve(''), 1);
+				//return setTimeout(resolve(''), 1);
+	    	});
+	    }
+	    
+	    const chatStatistics = (isMathSuccess)=>{
+	    	return new Promise(resolve =>{
+	    		if(isMathSuccess == true){
+		    		Object.values(setting.nowQuestionsInfo).forEach(e=>{
+		    			e.chartValue = e.userSelectCount / setting.nowQuestionsTotalCount;
+		    			e.chartValueHTML.style.width = `${e.chartValue * 100}%`
+		    		});
+	    		}
+	    		return setTimeout(resolve(''), 1);
 	    	});
 	    }
 	});
@@ -351,7 +369,7 @@
 			</div>
 			<div class="bottom_button_list bottom_wrap_fadein">
 				<button id="game_start_button"type="button" class="bottom_button" onclick="startGame(this);">게임시작</button>
-				<button type="button" class="bottom_button" onclick="document.querySelector('#game_select_layer').style.display='flex'">게임 선택</button>
+				<button type="button" class="bottom_button" onclick="canvas.getAttribute('is_canvas_run') === 'Y' ? modalLoader.createModalAlertText(['게임이 켜져있습니다.']) : document.querySelector('#game_select_layer').style.display='flex'">게임 선택</button>
 				<button type="button" class="bottom_button" onclick="document.querySelector('#timer_setting_layer').style.display='flex'">타이머 설정</button>
 				<button type="button" class="bottom_button" onclick="document.querySelector('#option_layer').style.display='flex'">설정</button>
 			</div>
@@ -484,19 +502,98 @@
 		
 		<div id="cotton_questions" style="position: absolute;width: 100%;height: 100%;display: none;background-color: rgba(240, 248, 255, 0.29);opacity: 1;justify-content: center;align-items: center;top: 0px;left: 0px;z-index: 2;align-content: space-between;padding-top: 5%;">
 			<div class="cotton_questions_wrapper" style="width: 41vw;display: grid;gap: 2%;">
-				<a href="javascript:void(0);" style="margin-left: 96%;font-size: 2vmax;background-color: white;text-align: center;" onclick="this.offsetParent.style.display='none';">
-					X
-				</a>
+				<div style="display: flex;justify-content: space-between;align-items: center;">
+					<button class="cotton_questions_type bottom_button" style="text-align: center;font-weight: bold;height: 100%;" data-is_subjective="false" onclick="cottonQuestionsTypeEvent(this);">
+						주관식 전환
+					</button>
+					<script>
+						function cottonQuestionsTypeEvent(obj){
+							let isSubjective = !(JSON.parse(obj.dataset.is_subjective)) 
+							obj.dataset.is_subjective = isSubjective;
+							let offsetParent = obj.offsetParent;
+							cottonQuestionsChangeType(offsetParent, isSubjective)
+						}
+						function cottonQuestionsChangeType(targetObj, isSubjective){
+							console.log(targetObj);
+							console.log(isSubjective);
+							if(isSubjective){
+								targetObj.querySelector('textarea#questions').style.display = 'inline-block';
+								targetObj.querySelector('.cotton_questions_multiple_choice').style.display = 'none';
+								targetObj.querySelector('#answer_wrapper input#answer').style.display = 'block';
+								targetObj.querySelector('.cotton_questions_type').textContent = '객관식 전환';
+							}else{
+								targetObj.querySelector('textarea#questions').style.display = 'none';
+								targetObj.querySelector('.cotton_questions_multiple_choice').style.display = 'grid';
+								targetObj.querySelector('#answer_wrapper input#answer').style.display = 'none';
+								targetObj.querySelector('.cotton_questions_type').textContent = '주관식 전환';
+							}
+						}
+					</script>
+					<a href="javascript:void(0);" style="font-size: 2vmax;background-color: white;text-align: center;" onclick="this.offsetParent.style.display='none';">
+						X
+					</a>
+				</div>
 				<div class="cotton_questions_content" style="display: grid;width: 100%;text-align: center;text-align: -webkit-center;gap: 5%; height: 47vh;">
 					<input id="title" class="cotton_input_questions_content" data-empty_message="제목 내용" type="text" min="1" placeholder="제목" step="0.01" maxlength="43" style="width: 100%;">
-					<textarea id="questions" class="cotton_input_questions_content" data-empty_message="문제 내용"rows="13" cols="37" placeholder="문제 내용 (500글자 제한) &#13;&#10; *주의사항)줄바꿈을 기준으로 문항을 인식합니다.&#13;&#10;엔터 열번 누르면 10문항으로 만들어집니다.&#13;&#10;문항마다 숫자는 자동으로 붙습니다. &#13;&#10; 예시) &#13;&#10;주르르는 500이다. => 1. 주르르는 500이다.&#13;&#10;주르르는 600이다. => 2. 주르르는 600이다.&#13;&#10;주르르는 700이다. => 3. 주르르는 700이다." style="font-size: 1vmax;font-weight: bold;" maxlength="500"></textarea>
+					<textarea id="questions" class="cotton_input_questions_content" data-empty_message="문제 내용"rows="13" cols="37" placeholder="문제 내용 (500글자 제한)" style="font-size: 1vmax;font-weight: bold; display: none;" maxlength="500"></textarea>
+					<div class="cotton_questions_multiple_choice" style="display: grid;gap: 3%;">
+						<label style="display: flex;background-color: wheat;">
+						<input class="cotton_questions_multiple_choice_answer" type="checkbox" value=1 onclick="cottonQuestionsMultipleChoiceAnswer(this)">1번<input class="multiple_choice_text" type="text" data-index="0" maxlength="43" style="width: 91%;" placeholder="정답에 체크해주세요">
+					    </label>
+					    <label style="display: flex;background-color: wheat;">
+						<input class="cotton_questions_multiple_choice_answer" type="checkbox" value=2 onclick="cottonQuestionsMultipleChoiceAnswer(this)">2번<input class="multiple_choice_text" type="text" data-index="0" maxlength="43" style="width: 91%;" placeholder="정답에 체크해주세요">
+					    </label>
+					    <label style="display: flex;background-color: wheat;">
+						<input class="cotton_questions_multiple_choice_answer" type="checkbox" value=3 onclick="cottonQuestionsMultipleChoiceAnswer(this)">3번<input class="multiple_choice_text" type="text" data-index="0" maxlength="43" style="width: 91%;" placeholder="정답에 체크해주세요">
+					    </label>
+					    <label style="display: flex;background-color: wheat;">
+						<input class="cotton_questions_multiple_choice_answer" type="checkbox" value=4 onclick="cottonQuestionsMultipleChoiceAnswer(this)">4번<input class="multiple_choice_text" type="text" data-index="0" maxlength="43" style="width: 91%;" placeholder="정답에 체크해주세요">
+					    </label>
+					    <label style="display: flex;background-color: wheat;">
+						<input class="cotton_questions_multiple_choice_answer" type="checkbox" value=5 onclick="cottonQuestionsMultipleChoiceAnswer(this)">5번<input class="multiple_choice_text" type="text" data-index="0" maxlength="43" style="width: 91%;" placeholder="정답에 체크해주세요">
+					    </label>
+					    <label style="display: flex;background-color: wheat;">
+						<input class="cotton_questions_multiple_choice_answer" type="checkbox" value=6 onclick="cottonQuestionsMultipleChoiceAnswer(this)">6번<input class="multiple_choice_text" type="text" data-index="0" maxlength="43" style="width: 91%;" placeholder="정답에 체크해주세요">
+					    </label>
+					    <label style="display: flex;background-color: wheat;">
+						<input class="cotton_questions_multiple_choice_answer" type="checkbox" value=7 onclick="cottonQuestionsMultipleChoiceAnswer(this)">7번<input class="multiple_choice_text" type="text" data-index="0" maxlength="43" style="width: 91%;" placeholder="정답에 체크해주세요">
+					    </label>
+					    <label style="display: flex;background-color: wheat;">
+						<input class="cotton_questions_multiple_choice_answer" type="checkbox" value=8 onclick="cottonQuestionsMultipleChoiceAnswer(this)">8번<input class="multiple_choice_text" type="text" data-index="0" maxlength="43" style="width: 91%;" placeholder="정답에 체크해주세요">
+					    </label>
+					    <script>
+					    	function cottonQuestionsMultipleChoiceAnswer(obj){
+					    		let checked = [...document.querySelectorAll('.cotton_questions_multiple_choice_answer')].find(e=>{
+					    			if( (e === obj) === false ){
+					    				return e.checked;
+					    			}else{
+					    				return false;
+					    			}
+					    		});
+					    		if(checked){
+									obj.checked = !obj.checked ;
+									modalLoader.createModalAlertText(['하나만 선택해주세요.']);
+					    		}
+					    	}
+					    </script>
+					</div>
 					<div id="answer_wrapper" style="display: flex;flex-direction: row-reverse;align-items: center;justify-content: space-evenly;">
-						<input id="answer" class="cotton_input_questions_content" data-empty_message="정답 내용"type="text" min="1" placeholder="정답 내용" step="0.01" style="width: 50%;">
+						<input id="answer" class="cotton_input_questions_content" data-empty_message="정답 내용"type="text" min="1" placeholder="정답 내용" step="0.01" style="width: 50%; display:none;">
 						<label style="background: white;font-size: 1vmax;font-family: cursive;">
 							정답 내용 숨기기
-							<input type="checkbox" onclick="this.checked === true ? 
-																this.offsetParent.querySelector('#answer').style.color = 'transparent' : 
-																this.offsetParent.querySelector('#answer').style.color = 'black' "/>
+							<input type="checkbox" onclick="hideAnswer(this);"/>
+							<script>
+								function hideAnswer(obj){
+									let offsetParent = obj.offsetParent;
+									if(obj.checked === true){
+										offsetParent.querySelector('#answer').style.color = 'transparent'
+										offsetParent.querySelectorAll('.cotton_questions_multiple_choice_answer').forEach(e=>e.style.opacity = 0);
+									}else{
+										offsetParent.querySelector('#answer').style.color = 'black'
+										offsetParent.querySelectorAll('.cotton_questions_multiple_choice_answer').forEach(e=>e.style.opacity = 1);
+									}
+								}
+							</script>
 						</label>
 					</div>
 				</div>
@@ -520,21 +617,44 @@
 				    			let nowPageValue = Number(nowPage.textContent);
 				    			let maxPageValue = Number(maxPage.textContent);
 			    				
+				    			let multipleChoiceInputList = questionsContent.querySelectorAll('.cotton_questions_multiple_choice input.multiple_choice_text')
+				    			let multipleChoiceAnswerList = questionsContent.querySelectorAll('.cotton_questions_multiple_choice_answer')
+				    			
+				    			let multipleChoiceAnswer = [...multipleChoiceAnswerList].find(e=>e.checked);
+				    			let multipleChoiceQuestions = title.value + '\n' + [...multipleChoiceInputList].filter(e=>e.value!='').map((e, i)=> ''.padStart(7,'\t') + (i+1) +'. ' + e.value).join('\n')
+				    			
+				    			let isSubjective = JSON.parse(document.querySelector('.cotton_questions_type').dataset.is_subjective)
+				    			
 				    			let thisPageIsExist = setting.thisPageIsExist(nowPageValue -1, [setting.cottonQuestions.questionsList, setting.cottonQuestions.answers]);
 				    			
-			    				if(title.value.length === 0 || questionsArr.value.length === 0 || answer.value.length ===0){
-			    					let alertMessage = ['입력되지 않은 내용이 있습니다.']
-			    					alertMessage.push(...[...questionsContent.querySelectorAll('.cotton_input_questions_content')].filter(e=>e.value.length == 0).map(e=>`*${e.dataset.empty_message}*`));
+				    			if(isSubjective == true && ( title.value.length === 0 || questionsArr.value.length === 0 || answer.value.length ===0 )){
+				    				let alertMessage = ['입력되지 않은 내용이 있습니다.']
+				    				alertMessage.push(...[...questionsContent.querySelectorAll('.cotton_input_questions_content')].filter(e=>e.style.display != 'none' && e.value.length == 0).map(e=>`*${e.dataset.empty_message}*`));
 			    					modalLoader.createModalAlertText(alertMessage);
 			    					return false;
-			    				}
-			    				
-			    				let resultQuestions = `${title.value}\n${questionsArr.value}`.split('\n').reduce((list,item,index)=>{ 
-			    					if( thisPageIsExist == false || `${item.charAt(0)}${item.charAt(1)} ` == `${index}. ` == false){
-				    					index == 0 ? 
-	    										item = item : 
-	    										item = `${index}. ${item}`;
+				    			}
+				    			else if(isSubjective == false){
+				    				let alertMessage = ['입력되지 않은 내용이 있습니다.']
+			    					if([...multipleChoiceInputList].filter(e=>e.value.length == 0).length == 8)
+			    					{	
+			    						alertMessage.push('*문제 내용이 없음*')
 			    					}
+			    					if(multipleChoiceAnswer == undefined)
+			    					{
+			    						alertMessage.push('*정답이 선택되지 않음*')
+			    					}
+			    					let answerIndex = [...multipleChoiceAnswerList].findIndex(e=>e.checked);
+			    					if(multipleChoiceInputList[answerIndex].value == ''){
+			    						alertMessage.push('*선택된 정답이 내 여친임*');
+			    					}
+			    					if(alertMessage.length > 1){
+			    						modalLoader.createModalAlertText(alertMessage);
+			    						return false;
+			    					}
+			    				}
+
+			    				
+			    				let resultQuestions = isSubjective == false ? multipleChoiceQuestions : `${title.value}\n${questionsArr.value}`.split('\n').reduce((list,item)=>{ 
 									if(item.length > 42){
 			    				        let str;
 			    				        while(str !== '' ){
@@ -555,20 +675,26 @@
 			    							    				
 			    				if(thisPageIsExist){
 			    					setting.cottonQuestions.questionsList[nowPageValue - 1] = resultQuestions;
-			    					setting.cottonQuestions.answers[nowPageValue - 1] = `${setting.chatSeparator}${answer.value}`;
+			    					setting.cottonQuestions.answers[nowPageValue - 1] = isSubjective ? `${setting.chatSeparator}${answer.value}` : multipleChoiceAnswer.value;
+			    					setting.cottonQuestions.isSubjective[nowPageValue - 1] = isSubjective;
 			    					nowPage.textContent = `${nowPageValue + 1}`.padStart(2,'0');
 			    					if(setting.thisPageIsExist(nowPageValue, [setting.cottonQuestions.questionsList, setting.cottonQuestions.answers])
 			    						){
 			    						cottonQuestionsPagingProcess(questionsWrapper.querySelector('#cotton_questions_right_page'), 1);
 			    					}else{
 			    						questionsTextDelete(title, questionsArr, answer);
+			    						multipleChoiceInputList.forEach(e=>e.value = '');
+			    						multipleChoiceAnswerList.forEach(e=>e.checked = false);
 				    					nowPage.textContent = `${nowPageValue + 1}`.padStart(2,'0');
 			    					}
 			    					return false;
 			    				}else{
 			    					setting.cottonQuestions.questionsList.push(resultQuestions);
-			    					setting.cottonQuestions.answers.push(`#${answer.value}`);
-			    					questionsTextDelete(title, questionsArr, answer)
+			    					setting.cottonQuestions.answers.push(isSubjective ? `${setting.chatSeparator}${answer.value}` : multipleChoiceAnswer.value);
+			    					setting.cottonQuestions.isSubjective.push(isSubjective);
+			    					questionsTextDelete(title, questionsArr, answer);
+			    					multipleChoiceInputList.forEach(e=>e.value = '');
+			    					multipleChoiceAnswerList.forEach(e=>e.checked = false);
 					    			nowPage.textContent = `${nowPageValue + 1}`.padStart(2,'0');
 					    			maxPage.textContent = `${maxPageValue + 1}`.padStart(2,'0');
 			    				}
@@ -598,6 +724,9 @@
 		    				let maxPage = Number(questionsWrapper.querySelector('#cotton_questions_max_page').textContent);
 							let nowPage = Number(questionsWrapper.querySelector('#cotton_questions_page').textContent);
 							let paging = nowPage + addNumber;
+							
+
+							
 							if(paging < 1){
 								paging = maxPage;
 							}else if(paging > maxPage){
@@ -606,18 +735,31 @@
 
 							questionsWrapper.querySelector('#cotton_questions_page').textContent = `${paging}`.padStart(2,'0') ;
 							paging = paging - 1
-							console.log(paging);
+							
+							let isSubjective = setting.cottonQuestions.isSubjective[paging];
+							cottonQuestionsChangeType(questionsWrapper, isSubjective);
+							
+							let multipleChoiceInputList = questionsContent.querySelectorAll('.cotton_questions_multiple_choice input.multiple_choice_text')
+							let multipleChoiceAnswerList = questionsContent.querySelectorAll('.cotton_questions_multiple_choice_answer')
 							if(setting.cottonQuestions.questionsList.hasOwnProperty(paging) && 
 								setting.cottonQuestions.answers.hasOwnProperty(paging)
 							){
-								textArr = setting.cottonQuestions.questionsList[paging].split('\n')
+								textArr = setting.cottonQuestions.questionsList[paging].split('\n');
 								title.value = textArr[0];
-								questionsArr.value = textArr.map((e,i) => i == 0 ? '' : e.replaceAll('\t','')).join('\n').substring(1);
-								answer.value = setting.cottonQuestions.answers[paging].substring(1);
+								if(isSubjective == true){
+									questionsArr.value = textArr.map((e,i) => i == 0 ? '' : e.replaceAll('\t','')).join('\n').substring(1);
+									answer.value = setting.cottonQuestions.answers[paging].substring(setting.chatSeparator.length);
+								}else{
+					    			textArr.slice(1).map((e,i) => multipleChoiceInputList[i].value = e.replaceAll('\t',''));
+					    			let multipleChoiceAnswer = setting.cottonQuestions.answers[paging].substring(setting.chatSeparator.length);
+									multipleChoiceAnswerList[Number(multipleChoiceAnswer) - 1].checked = true;
+								}
 							}else{
 								title.value = ''
 								questionsArr.value = ''
 								answer.value = ''
+								multipleChoiceInputList.forEach(e=>e.value = '');
+								multipleChoiceAnswerList.forEach(e=>e.checked = false);
 							}
 						}
 					</script>
@@ -652,12 +794,9 @@
 					let page = questionsObj.page;
 					let questionsList = questionsObj.questionsList[page - 1].split('\n')
 					let questionsTilte = questionsList.splice(0,1)
-					setting.nowQuestionsInfo.all = [];
-					questionsItemHtml = questionsList.map(e=>{
+					questionsItemHtml = questionsList.map((e, i)=>{
 						let questionsText = e.replaceAll('\t','')
 						let questionsUserSelect = questionsText.charAt(0);
-						
-						questionsText = questionsText.substring(3);
 						/*
 						let questionsItem = `
 											<label class="questions_user_select" data-text_value="${questionsText}">${questionsUserSelect}</label>
@@ -667,22 +806,39 @@
 											</svg>
 											`
 						*/
-						let label = Object.assign( document.createElement('label'), {className : "questions_user_select", textContent : questionsUserSelect} );
-						label.setAttribute('data-text_value', questionsText)
-						let span = Object.assign( document.createElement('span'), {className : "questions_user_select_number", textContent: 0});
-						let chartWrapper = Object.assign( document.createElement('div'), {className : "chat_questions_chart"});
-						let chartGraph = Object.assign( document.createElement('div'), {className : "chat_questions_chart_graph"});
-						chartWrapper.append(chartGraph);
-						Object.assign(chartGraph.style,{backgroundColor:getRandomColor(),width:'0%'});
-						
-						let div = Object.assign(document.createElement('div'),{className:'chat_questions_chart_statistics_wrapper'});
-						div.append(...[label, span, chartWrapper]);
-						
-						let obj = {'chartValueHTML' : chartGraph, 'userSelectCountHTML' : span, 'chartValue' : 0, 'userSelectCount' : 0};
-						setting.nowQuestionsInfo[questionsUserSelect] = obj;
-						setting.nowQuestionsInfo[questionsText] = obj;
-						setting.nowQuestionsInfo.all.push(obj);
-						return div;
+
+						if(questionsObj.isSubjective[page - 1] == true){
+							let label = Object.assign( document.createElement('label'), {className : "questions_label", textContent : `${questionsText} : `} );
+							label.setAttribute('data-text_value', questionsText)
+							let span = Object.assign( document.createElement('span'), {className : "questions_user_select_number", textContent: 0});
+							let chartWrapper = Object.assign( document.createElement('div'), {className : "chat_questions_chart"});
+							let chartGraph = Object.assign( document.createElement('div'), {className : "chat_questions_chart_graph"});
+							chartWrapper.append(chartGraph);
+							Object.assign(chartGraph.style,{backgroundColor:getRandomColor(),width:'0%'});
+							
+							let div = Object.assign(document.createElement('div'),{className:'chat_questions_chart_statistics_wrapper'});
+							div.append(...[label, span, chartWrapper]);
+							
+							let obj = {'chartValueHTML' : chartGraph, 'userSelectCountHTML' : span, 'chartValue' : 0, 'userSelectCount' : 0};
+							setting.nowQuestionsInfo[questionsText] = obj;
+							return div;
+						}else{
+							let label = Object.assign( document.createElement('label'), {className : "questions_user_select", textContent : questionsUserSelect} );
+							label.setAttribute('data-text_value', questionsText)
+							let span = Object.assign( document.createElement('span'), {className : "questions_user_select_number", textContent: 0});
+							let chartWrapper = Object.assign( document.createElement('div'), {className : "chat_questions_chart"});
+							let chartGraph = Object.assign( document.createElement('div'), {className : "chat_questions_chart_graph"});
+							chartWrapper.append(chartGraph);
+							Object.assign(chartGraph.style,{backgroundColor:getRandomColor(),width:'0%'});
+							
+							let div = Object.assign(document.createElement('div'),{className:'chat_questions_chart_statistics_wrapper'});
+							div.append(...[label, span, chartWrapper]);
+							
+							let obj = {'chartValueHTML' : chartGraph, 'userSelectCountHTML' : span, 'chartValue' : 0, 'userSelectCount' : 0};
+							setting.nowQuestionsInfo[questionsUserSelect] = obj;
+							return div;
+						}
+
 					});
 					
 					chatQuestionsViewItemWrapper.forEach(e=>e.replaceChildren(...questionsItemHtml.splice(0,4)))
@@ -995,6 +1151,7 @@
 		            canvas.setAttribute('is_canvas_run', 'Y')
 		        });
 				canvas.style.display = 'flex';
+				document.querySelector('#chat_questions_view_wrapper').style.display = 'flex'
 				//let targetQuestions = setting[setting.gameSelectKey];
 				//text = targetQuestions.questionsList[targetQuestions.page - 1].split('\n');
 				//padQuestionInfo = createText();
@@ -1003,6 +1160,7 @@
 			}else if(canvas.getAttribute('is_canvas_run') === 'Y'){
 				createScene.then(sceneToRender=>sceneToRender.dispose());
 				canvas.style.display = 'none';
+				document.querySelector('#chat_questions_view_wrapper').style.display = 'none;'
 				canvas.setAttribute('is_canvas_run', 'N')
 				obj.textContent = '게임 off'
 				setting.isStartGame = false;
