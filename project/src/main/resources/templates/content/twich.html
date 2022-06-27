@@ -10,13 +10,12 @@
 <script type="text/javascript" th:src="@{js/client/Questions.js}"></script>
 <script src="https://cdn.babylonjs.com/babylon.js"></script>
 <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
-<script type="text/javascript" th:src="@{js/client/meshwriter.min.js}"></script>
 <style>
 	span.chat_id:after {
     	content: " : ";
 	}
 	label.questions_user_select:after{
-		content: "번 : ";
+		content: " : ";
 	}
 	span.questions_user_select_number:after{
 		content:"명";
@@ -103,6 +102,24 @@
 	    white-space: nowrap;
 	    text-overflow: ellipsis;
     }
+    .video_questions_wrapper{
+		background-color: white;
+	    color: black;
+	    font-weight: bold;
+	    height: 100%;
+	    display: flex;
+	    align-items: center;
+	    justify-content: space-between;
+    }
+    .video_questions_title{
+        background-color: white;
+	    color: black;
+	    font-weight: bold;
+	    padding: 1%;
+    }
+    .video_questions_select{
+   		min-width : 25vw;
+   	}
 </style>
 <script type="text/javascript">
 	const randomColor = ['#ffffff','#fff5ee','#fffafa','#f8f8ff','#fffaf0','#f5f5f5','#f0f8ff','#f0ffff','#fdf5e6','#f5fffa','#ffefd5','#ffdab9','#faf0e6','#eee8aa','#ffe4e1','#ffe4b5','#ffdead','#d2b48c','#f5deb3','#fafad2','#ffffe0','#fff8dc','#faebd7','#f5f5dc','#fffacd','#fffff0','#f0e68c','#e6e6fa','#fff0f5','#ffe4c4','#ffebcd','#deb887','#cd853f','#00ced1','#00bfff','#7fffd4','#1e90ff','#00ffff','#f0fff0','#87cefa','#afeeee','#e0ffff','#add8e6','#b0c4de','#40e0d0','#48d1cc','#00ffff','#b0e0e6','#87ceeb','#4169e1','#ff00ff','#ff00ff','#c71585','#dc143c','#ff1493','#ffb6c1','#ff69b4','#ffc0cb','#dda0dd','#ee82ee','#d8bfd8','#da70d6','#a52a2a','#e9967a','#f08080','#cd5c5c','#ffa07a','#db7093','#f4a460','#fa8072','#ff6347','#ff4500','#ff0000','#b22222','#d2691e','#bc8f8f','#ff7f50','#ff8c00','#ffa500','#b8860b','#ffd700','#ffff00','#7fff00','#7cfc00','#00ff00','#32cd32','#00ff7f','#3cb371','#adff2f','#8fbc8f','#90ee90','#98fb98','#2e8b57','#00fa9a','#20b2aa','#66cdaa','#6b8e23','#bdb76b','#daa520'];
@@ -117,25 +134,28 @@
 		backgroundImage : [`url('images/jululu_background_image_night.png')`, `url('images/jululu_background_image.png')`],
 		isStartGame : false,
 		gameSelectKey : -1,
-		questionsRecord : {},
+		questionsRecord : [],
 		nowQuestionsInfo : {},
 		nowQuestionsTotalCount : 0,
+		nowQuestionsSelectInfo : {},
 		chatSeparator : '',
 		devQuestions : {
 			questionsList : questions.devQuestions,
-			pageMax : 1,
+			//pageMax : 1,
 			page : 1,
 			type : 0,
 			answers : questions.devAnswer,
-			isSubjective : [false,false,false,false,false],
+			isSubjective : [false,false,false,false,false,false,false,false,false,false],
+			questionUserInfo : [],
 		},
 		cottonQuestions : {
 			questionsList : [],
-			pageMax : 1,
+			//pageMax : 1,
 			page : 1,
 			type : 1,
 			answers : [],
 			isSubjective : [],
+			questionUserInfo : [],
 		},
 		twentyHills :{
 			questionsCount : 0,
@@ -143,10 +163,6 @@
 			type : 2,
 		},
 		thisPageIsExist : function(page, obj){
-			//console.log(obj);
-			//console.log(page);
-			//console.log(typeof page)
-			//console.log(obj.filter(e=>e.hasOwnProperty(page)).length == obj.length)
 			return obj.filter(e=>e.hasOwnProperty(page)).length == obj.length;
 		}
 	}
@@ -216,7 +232,8 @@
 	    
 	    const chatQuestionsMapperFilter = (chatInfo) => {
 	    	return new Promise(resolve =>{
-		    	if(chatInfo && (( setting.nowQuestionsInfo.hasOwnProperty(chatInfo.message.substring(setting.chatSeparator.length).charAt(0)) && setting[setting.gameSelectKey].isSubjective[setting[setting.gameSelectKey].page - 1] == false ) || setting[setting.gameSelectKey].isSubjective[setting[setting.gameSelectKey].page - 1] == true )){
+		    	if(chatInfo && 
+		    			(( setting.nowQuestionsInfo.hasOwnProperty(chatInfo.message.substring(setting.chatSeparator.length).charAt(0)) && setting[setting.gameSelectKey].isSubjective[setting[setting.gameSelectKey].page - 1] == false ) || setting[setting.gameSelectKey].isSubjective[setting[setting.gameSelectKey].page - 1] == true )){
 		    		return setTimeout(resolve(chatInfo), 1);
 		    	}
 				//return setTimeout(resolve(''), 1);
@@ -225,21 +242,25 @@
 	    
 	    const chatUserSelectMath = (chatInfo) => {
 	    	return new Promise(resolve =>{
-	    		if(chatInfo){
+	    		console.log(chatInfo);
+	    		if(chatInfo && setting.nowQuestionsSelectInfo.hasOwnProperty(chatInfo.user) == false){
+	    			setting.nowQuestionsSelectInfo[chatInfo.user] = chatInfo.message//{'userMessage' : chatInfo.message};
 	    			let isSubjective = setting[setting.gameSelectKey].isSubjective[setting[setting.gameSelectKey].page - 1];
 	    			if(isSubjective){
-	    				//answrTextObj
-	    				if(setting.nowQuestionsInfo.answrTextObj.hasOwnProperty(chatInfo.message)){
-	    					setting.nowQuestionsInfo.answrTextObj[chatInfo.message]++;	
+	    				//answerTextObj
+	    				if(setting.nowQuestionsInfo.answerTextObj.hasOwnProperty(chatInfo.message)){
+	    					setting.nowQuestionsInfo.answerTextObj[chatInfo.message]++;	
 	    				}else{
-	    					setting.nowQuestionsInfo.answrTextObj[chatInfo.message] = 1;
+	    					setting.nowQuestionsInfo.answerTextObj[chatInfo.message] = 1;
 	    				}
-	    				let answerListSort = Object.entries(setting.nowQuestionsInfo.answrTextObj).sort((a,b)=>b[1] - a[1]);
-	    				[0,1,2,3,4,5,6,7].forEach(e=>{
-	    					let targetObject = setting.nowQuestionsInfo[i];
-	    					targetObject.userSelectCount = answerListSort[i][1];
-	    					targetObject.userSelectCountHTML.textContent = answerListSort[i][1];
-	    					targetObject.questionsLabel.textContent = answerListSort[i][0];
+	    				let answerListSort = Object.entries(setting.nowQuestionsInfo.answerTextObj).sort((a,b)=>b[1] - a[1]);
+	    				[0,1,2,3,4,5,6,7].forEach((e,i)=>{
+	    					if(answerListSort.hasOwnProperty(i)){
+		    					let targetObject = setting.nowQuestionsInfo[i];
+		    					targetObject.userSelectCount = answerListSort[i][1];
+		    					targetObject.userSelectCountHTML.textContent = answerListSort[i][1];
+		    					targetObject.questionsLabel.textContent = answerListSort[i][0];
+	    					}
 	    				})
     					setting.nowQuestionsTotalCount = answerListSort.reduce((t,e) => {
     						t += Number(e[1]);
@@ -265,9 +286,11 @@
 	    const chatStatistics = (isMathSuccess)=>{
 	    	return new Promise(resolve =>{
 	    		if(isMathSuccess == true){
-		    		Object.values(setting.nowQuestionsInfo).forEach(e=>{
-		    			e.chartValue = e.userSelectCount / setting.nowQuestionsTotalCount;
-		    			e.chartValueHTML.style.width = `${e.chartValue * 100}%`
+		    		Object.entries(setting.nowQuestionsInfo).forEach(e=>{
+		    			if((e[0] == 'answerTextObj') == false){
+			    			e[1].chartValue = e[1].userSelectCount / setting.nowQuestionsTotalCount;
+			    			e[1].chartValueHTML.style.width = `${e[1].chartValue * 100}%`
+		    			}
 		    		});
 	    		}
 	    		return setTimeout(resolve(''), 1);
@@ -305,6 +328,13 @@
 		    		this.isCustomRun = false;
 			    	this.setTimerDefult();
 			    	modalLoader.createModalAlertText(['타이머 종료']);
+			    	if(videoSetting.isVideoStart == true){
+			    		document.querySelector('#video_button').style.display = 'inline-block';
+			    		videoSetting.isVideoStart = false
+			    	}
+			    	if(Object.entries(setting.nowQuestionsInfo).length != 0 && Object.entries(setting.nowQuestionsSelectInfo)){
+			    		questionsRecordSave();
+			    	}
 			    	return false;
 			    }
 	    		this.timerElement.querySelector('.hour').textContent = `${Math.floor( ms / this.hour )}`.padStart(2,'0');
@@ -464,7 +494,7 @@
 						document.querySelector('.timer_setting_input_block > input').onkeyup = function(e){
 							if(e.key==='Enter'){
 								this.blur();
-								timer.setCustomTimer(this.value);
+								timer.setCustomTimer(this.offsetParent);
 							}else{
 								return false; 
 							}
@@ -536,8 +566,6 @@
 							cottonQuestionsChangeType(offsetParent, isSubjective)
 						}
 						function cottonQuestionsChangeType(targetObj, isSubjective){
-							console.log(targetObj);
-							console.log(isSubjective);
 							if(isSubjective){
 								targetObj.querySelector('textarea#questions').style.display = 'inline-block';
 								targetObj.querySelector('.cotton_questions_multiple_choice').style.display = 'none';
@@ -806,18 +834,23 @@
 				var questionUserSelectNumber;
 				function createChatWrapper(){
 					if(canvas.hasAttribute('is_canvas_run') === false ||
-						canvas.getAttribute('is_canvas_run') === 'N'
+						canvas.getAttribute('is_canvas_run') === 'N' || setting.isStartGame == false
 					){
 						return;
 					}
+					if(Object.keys(setting.nowQuestionsInfo).length != 0){
+						setting[setting.gameSelectKey].questionUserInfo.push(setting.nowQuestionsInfo);
+					}
 					setting.nowQuestionsInfo = {}
+					setting.nowQuestionsSelectInfo = {};
 					chatQuestionsViewWrapper.style.display = 'flex';
 					let questionsObj = setting[setting.gameSelectKey];
 					let page = questionsObj.page;
 					let questionsList = questionsObj.questionsList[page - 1].split('\n')
 					let questionsTilte = questionsList.splice(0,1);
 					let questionsItemHtml;
-					if(questionsObj.isSubjective[page - 1]){
+					let isSubjective = questionsObj.isSubjective[page - 1]
+					if(isSubjective){
 						questionsItemHtml = [0,1,2,3,4,5,6,7].map((e,i)=>{
 							let label = Object.assign( document.createElement('label'), {className : "questions_label", textContent : ''} );
 							let span = Object.assign( document.createElement('span'), {className : "questions_user_select_number", textContent: 0});
@@ -829,9 +862,9 @@
 							let div = Object.assign(document.createElement('div'),{className:'chat_questions_chart_statistics_wrapper'});
 							div.append(...[label, span, chartWrapper]);
 							
-							let obj = {'questionsLabel':label, 'chartValueHTML' : chartGraph, 'userSelectCountHTML' : span, 'chartValue' : 0, 'userSelectCount' : 0};
+							let obj = {'questionsLabel':label, 'chartValueHTML' : chartGraph, 'userSelectCountHTML' : span, 'chartValue' : 0, 'userSelectCount' : 0, 'questionsLabel' : label, 'questionsText' : questionsObj.questionsList[page - 1], 'isSubjective': isSubjective};
 							setting.nowQuestionsInfo[i] = obj;
-							setting.nowQuestionsInfo.answrTextObj = {};
+							setting.nowQuestionsInfo.answerTextObj = {};
 							return div;
 						})
 					}else{
@@ -847,8 +880,8 @@
 												</svg>
 												`
 							*/
-								let label = Object.assign( document.createElement('label'), {className : "questions_user_select", textContent : questionsUserSelect} );
-								label.setAttribute('data-text_value', questionsText)
+								let label = Object.assign( document.createElement('label'), {className : "questions_user_select", textContent : questionsUserSelect + "번"} );
+								//label.setAttribute('data-text_value', questionsText)
 								let span = Object.assign( document.createElement('span'), {className : "questions_user_select_number", textContent: 0});
 								let chartWrapper = Object.assign( document.createElement('div'), {className : "chat_questions_chart"});
 								let chartGraph = Object.assign( document.createElement('div'), {className : "chat_questions_chart_graph"});
@@ -858,7 +891,7 @@
 								let div = Object.assign(document.createElement('div'),{className:'chat_questions_chart_statistics_wrapper'});
 								div.append(...[label, span, chartWrapper]);
 								
-								let obj = {'chartValueHTML' : chartGraph, 'userSelectCountHTML' : span, 'chartValue' : 0, 'userSelectCount' : 0};
+								let obj = {'chartValueHTML' : chartGraph, 'userSelectCountHTML' : span, 'chartValue' : 0, 'userSelectCount' : 0, 'questionsLabel' : label, 'questionsTitle' : questionsTilte, 'questionsText' : questionsText, 'isSubjective' : isSubjective};
 								setting.nowQuestionsInfo[questionsUserSelect] = obj;
 								return div;
 						});
@@ -867,13 +900,13 @@
 					chatQuestionsViewItemWrapper.forEach(e=>e.replaceChildren(...questionsItemHtml.splice(0,4)))
 				}
 				
-				function questionsRecordSave(title, [...data]){
-					while(questionsRecord.hasOwnProperty(title) == true){
-						title = title + '_';
-					}
-					setting.questionsRecord[title] = data.reduce((t,e,i)=>{
-						
-					},{})
+				function questionsRecordSave(){
+					let obj = {};
+					obj.questionsInfo = JSON.parse(JSON.stringify(setting.nowQuestionsInfo));
+					obj.userSelect = JSON.parse(JSON.stringify(setting.nowQuestionsSelectInfo));
+					obj.TotalCount = setting.nowQuestionsTotalCount;
+					obj.answer = setting[setting.gameSelectKey].answers[setting[setting.gameSelectKey].page - 1];
+					setting.questionsRecord.push(obj);
 				}
 				
 			 </script>
@@ -1065,7 +1098,8 @@
 	        
 	        groundVideoStart.actionManager = new BABYLON.ActionManager(scene);
 	        groundVideoStart.actionManager.registerAction( new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, (evt) => {
-	        	console.log(evt);
+	        	//console.log(evt);
+	        	videoQuestionStart();
 	        }));
 	        
 	        groundAnswerSelect.actionManager = new BABYLON.ActionManager(scene);
@@ -1073,7 +1107,34 @@
 	        	cameraSetAndDetach(camera);
 	        	let isSubjective = setting[setting.gameSelectKey].isSubjective[setting[setting.gameSelectKey].page - 1];
 				if(isSubjective){
-					
+					legalPad.then(pad=>{
+						let heightLine = 380;
+		       			let index = 0
+
+		       			for(let i = 2 ; i < pad.meshes.length ; i++){
+		       				let viewText = ''
+		       				heightLine = heightLine + 50
+		       				let padDynamicTexture = new BABYLON.DynamicTexture("PadDynamicTexture", {width:2064, height:1032}, scene);
+		        			padDynamicTexture.getContext();
+		       				padDynamicTexture.drawText(viewText, 870, heightLine, "bold 30px comic", i!=2?"red":"black", "transparent", false, true);
+		        			let mat = new BABYLON.StandardMaterial("Mat", scene);
+		    		        mat.diffuseTexture = padDynamicTexture;
+		    		        mat.diffuseTexture.hasAlpha = true;
+		    		        pad.meshes[i].material = mat;
+		    		        pad.meshes[i].questionEventHeightValue = heightLine;
+		    		        pad.meshes[i].questionTextValue = viewText;
+		    		        index++;
+		       			}
+		       			let targetAnswer = setting[setting.gameSelectKey].answers[setting[setting.gameSelectKey].page - 1]
+						let targetQuestion = pad.meshes[2]
+						let answerText = new BABYLON.DynamicTexture("PadDynamicTexture", {width:2064, height:1032}, scene);
+						answerText.getContext();
+						answerText.drawText(`정답은 : ${targetAnswer}`, 870, targetQuestion.questionEventHeightValue, "bold 30px comic", 'green', "transparent", false, true);
+	        			let answerMat = new BABYLON.StandardMaterial("Mat", scene);
+	        			answerMat.diffuseTexture = answerText;
+	        			answerMat.diffuseTexture.hasAlpha = true;
+	    		        targetQuestion.material = answerMat;
+					});
 				}else{
 					legalPad.then(pad=>{
 						let heightLine = 380;
@@ -1093,10 +1154,9 @@
 		    		        pad.meshes[i].questionTextValue = viewText;
 		    		        index++;
 		       			}
-		       			console.log(pad.meshes[3].questionTextValue);
-						let targetIndex = setting[setting.gameSelectKey].answers[setting[setting.gameSelectKey].page - 1]
+		       			//console.log(pad.meshes[3].questionTextValue);
+						let targetIndex = Number(setting[setting.gameSelectKey].answers[setting[setting.gameSelectKey].page - 1]);
 						let targetQuestion = pad.meshes[ targetIndex + 2 ]
-						console.log(targetQuestion)
 						let answerText = new BABYLON.DynamicTexture("PadDynamicTexture", {width:2064, height:1032}, scene);
 						answerText.getContext();
 						answerText.drawText(targetQuestion.questionTextValue, 870, targetQuestion.questionEventHeightValue, "bold 30px comic", 'green', "transparent", false, true);
@@ -1233,24 +1293,188 @@
     			<input type="range" min="0" max="1" value="1" step="0.1" onchange="volumeController(this)" oninput="volumeController(this)">
     			<img src="images/volume.png" style="width: 2vw;height: 3vh;transform: rotate(90deg);">
    		</label>
-   		<script type="text/javascript">
+   		<div id="video_questions_wrapper" style="width:100%; height:100%; background-color:black; opacity:0.7; position:absolute;color: antiquewhite;top: 0;left: 0;display: none;flex-direction: column;align-items: center;justify-content: center;gap: 6%;">
+  			
+   		</div>
+		<button id="video_button" style="display:none;position: absolute;background-color: white;bottom: 23vh;right: 21vw;font-weight: bold;font-size: 1.8vmax;opacity: 0.8;" onclick="openPublicAnswer(this);">
+   			정답 공개
+   			<script>
+   				function openPublicAnswer(obj){
+   					obj.textContent = '다음문제';
+   					obj.style.color = 'blue';
+   					obj.setAttribute('onclick', 'nextQuestions(this)');
+   					obj.style.display = 'none';
+   					
+   					videoObj.setAttribute('src', videoSetting.questions[videoSetting.page].videoAnswerSrc);
+					videoObj.play();
+					videoSetting.isAnswerVideoRun = true;
+					
+					videoWrapper.querySelector('#video_questions_wrapper').style.display = 'none';
+	   				document.querySelector('#all_content_wrap > div.time_wrapper').style.zIndex='';
+   					if( videoSetting.questions.hasOwnProperty( videoSetting.page + 1) == false ){
+   						obj.textContent = '종료';
+   	   					obj.setAttribute('onclick', 'endVideo(this)');
+   					}
+   				}
+   				function nextQuestions(obj){
+					if( videoSetting.questions.hasOwnProperty( videoSetting.page + 1) ){
+						videoSetting.page++;
+		   				
+						videoObj.setAttribute('src', videoSetting.questions[videoSetting.page].videoQuestionsSrc)
+						videoObj.play();
+		   				let videoSelectObj = videoWrapper.querySelector('#video_questions_wrapper')
+		   				videoSelectObj.style.display = 'none';
+						
+						obj.textContent = '정답공개'
+						obj.style.color = 'black';
+						obj.setAttribute('onclick', 'openPublicAnswer(this)');
+						obj.style.display = 'none';
+						
+					}
+   				}
+   				function endVideo(obj){
+   					videoSetting.page = 0;
+   					videoSetting.isVideoStart = false;
+   					videoSetting.isAnswerVideoRun = false;
+   					canvas.setAttribute('is_canvas_run', 'N');
+   					videoWrapper.style.display = 'none';
+   					document.querySelector('.time_wrapper').style.zIndex = '';
+   					document.querySelector('.timer_setting_input_block input').value = 0;
+   				}
+   			</script>
+   		</button>
+	   	<script type="text/javascript">
+   			var videoWrapper = document.querySelector('#video_wrapper');
+   			var videoObj = videoWrapper.querySelector('#video_now');
+   			var videoSetting = {
+   					isVideoStart : false,
+   					page : 0,
+   					isAnswerVideoRun : false,
+   			};
+   			videoSetting.questions = [
+   				{
+   					questions:`6. 무엇 때문에 르르땅은 억까를 당했을까? (난이도 下)`,
+   					selectQuestions : `1. 테트리스를 개못해서
+   										2. 운이 안좋아서
+   										3. 너무 예뻐서
+   										4. 저격이 너무 많아서`,
+   					answer : 3,
+   					videoQuestionsSrc : 'video/criticism/question_criticism.mp4',
+   					videoAnswerSrc : 'video/criticism/answers_criticism.mp4',
+   				},
+   				{
+   					questions:`7. 갑자기 누군가 내 눈을 가렸다. 대체 누굴까? (난이도 下)`,
+   					selectQuestions : `1. 엄주식
+										2. 코튼튼
+										3. 옆집 미영이
+										4. 업어치기를 한다
+										5. 주르르
+										6. 길햇님송이`,
+   					answer : 5,
+   					videoQuestionsSrc : 'video/who/question_who.mp4',
+   					videoAnswerSrc : 'video/who/answers_who.mp4',
+   				},
+   				{
+   					questions:`8. 이 당시 주폭도들의 반응으로 올바른 것은? (난이도 下)`,
+   					selectQuestions : `1. 걱정하지마. 오빠가 같이 있어줄께
+   										2. @cotton87002
+   										3. 어우 씹 도망쳐야겠다. (이라고 하면서 얼굴을 붉힌다.)
+   										4. 르르땅이.. 가지 말라고 한다면.... 이곳이 나의 무덤이야..`,
+   					answer : 3,
+   					videoQuestionsSrc : 'video/run/question_run.mp4',
+   					videoAnswerSrc : 'video/run/answers_run.mp4',
+   				},
+   				{
+   					questions:`9. 르르땅이 걸린 병은? (난이도 中)`,
+   					selectQuestions : `1. 폐렴
+										2. 조현병
+										3. 금연증상
+										4. 감기
+										5. 비트박스
+										6. 다래끼`,
+   					answer : 6,
+   					videoQuestionsSrc : 'video/hordeolum/question_hordeolum.mp4',
+   					videoAnswerSrc : 'video/hordeolum/answers_hordeolum.mp4',
+   				},
+   				{
+   					questions:`10. 숨어있는 주르르를 찾아야 한다. 어떻게 하면 좋을까? (난이도 下)`,
+   					selectQuestions : `1. 우리 아기 고양이, 꽃과 구분이 안 되는걸?
+   										2. @cotton87002
+   										3. 아 어딨지? 못찾겠네?
+   										4. 울어라.. 지옥.. 참마도`,
+   					answer : 3,
+   					videoQuestionsSrc : 'video/hiding/question_hiding.mp4',
+   					videoAnswerSrc : 'video/hiding/answers_hiding.mp4',
+   				},	
+   			]
+   			videoObj.onended = ()=>{
+   				let videoSelectObj = videoWrapper.querySelector('#video_questions_wrapper')
+   				videoSelectObj.style.display = 'flex';
+   				let targetObj = videoSetting.questions[videoSetting.page];
+   				if(videoSetting.isAnswerVideoRun){
+   					Object.entries( setting.nowQuestionsInfo ).forEach(e=>e[1].questionsLabel.style.color = 'red');
+   					let OpenAnswerTarget = setting.nowQuestionsInfo[targetObj.answer];
+   					OpenAnswerTarget.questionsLabel.style.color = 'green';
+   					
+   					videoSetting.isAnswerVideoRun = false;
+   					document.querySelector('#video_button').style.display = 'inline-block';
+   					return;
+   				}
+				setting.nowQuestionsInfo = {}
+				setting.nowQuestionsSelectInfo = {};
+   				/*
+   				let title = targetObj.questions;
+   				let questions = targetObj.selectQuestions.split('\n');
+   				*/
+   				videoSelectObj.replaceChildren();
+   				let titleLabel = Object.assign( document.createElement('label'), {className : "video_questions_title", textContent : targetObj.questions} );
+   				videoSelectObj.append(titleLabel);
+   				console.log(targetObj);
+   				targetObj.selectQuestions.split('\n').forEach((e,i)=>{
+   					let label;
+   					if(e.includes('@cotton87002')){
+   						let img = `<img src=images/jufox.png/>`;
+   						img += img
+   						img += img
+   						img += img
+   						img = '2. '+img;
+   						label = Object.assign( document.createElement('label'), {className : "questions_user_select", innerHTML : img} );
+   					}else{
+   						label = Object.assign( document.createElement('label'), {className : "questions_user_select", textContent : e} );
+   					}
+   					let span = Object.assign( document.createElement('span'), {className : "questions_user_select_number", textContent: 0});
+   					let questionsWrapper = Object.assign( document.createElement('div'), {className : "video_questions_wrapper"});
+   					questionsWrapper.append(...[label,span]);
+   					
+   					let chartWrapper = Object.assign( document.createElement('div'), {className : "chat_questions_chart"});
+					chartWrapper.style.width = '100%';
+   					let chartGraph = Object.assign( document.createElement('div'), {className : "chat_questions_chart_graph"});
+					chartWrapper.append(chartGraph);
+					Object.assign(chartGraph.style,{backgroundColor:getRandomColor(),width:'0%'});
+					let obj = {'chartValueHTML' : chartGraph, 'userSelectCountHTML' : span, 'chartValue' : 0, 'userSelectCount' : 0,'questionsLabel' : questionsWrapper};
+					setting.nowQuestionsInfo[i+1] = obj;
+					let div = Object.assign(document.createElement('div'), {className:"video_questions_select"});
+					div.append(...[questionsWrapper, chartWrapper]);
+					videoSelectObj.append(div);
+   				});
+   				canvas.setAttribute('is_canvas_run', 'Y');
+   				document.querySelector('.timer_setting_input_block input').value = 2;
+   				timer.setCustomTimer(document.querySelector('.timer_setting_input_block'));
+   				document.querySelector('.time_wrapper').style.zIndex = 9999;
+   				videoSetting.isVideoStart = true
+   			}
    			function volumeController(obj){
-   				obj.parentElement.querySelector('#video_now').volume = obj.value;
+   				videoObj.volume = obj.value;
    			}
    		</script>
-  		<div id="video_question_wrapper" style="width:100%; height:100%; background-color:black; opacity:0.4; position:absolute; display:none;">
-  			<div id=video_question_select>
-  			</div>
-  			<div id=video_question_select>
-  			</div>
-  			<div id=video_question_select>
-  			</div>
-   		</div>
    		<script type="text/javascript">
    			function videoQuestionStart(){
    				canvas.setAttribute('is_canvas_run', 'Y');
    				startGame(document.querySelector('#game_start_button'));
-   				
+   				//canvas.setAttribute('is_canvas_run', 'Y');
+   				videoWrapper.style.display = 'block';
+   				videoObj.play();
+   				isVideoStart = true;
    			}
    		</script>
    	</div>
