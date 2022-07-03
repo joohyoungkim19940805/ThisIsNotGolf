@@ -145,8 +145,9 @@
 			page : 1,
 			type : 0,
 			answers : questions.devAnswer,
-			isSubjective : [false,false,false,false,false,false,false,false,false,false],
+			isSubjective : [ false, false, false, false, false, false, false, false, false, false],
 			questionUserInfo : [],
+			answerUserList : [ {}, {}, {}, {}, {}, {}, {}, {}, {}, {} ],
 		},
 		cottonQuestions : {
 			questionsList : [],
@@ -156,6 +157,7 @@
 			answers : [],
 			isSubjective : [],
 			questionUserInfo : [],
+			answerUserList : [],
 		},
 		twentyHills :{
 			questionsCount : 0,
@@ -242,7 +244,7 @@
 	    
 	    const chatUserSelectMath = (chatInfo) => {
 	    	return new Promise(resolve =>{
-	    		console.log(chatInfo);
+	    		//console.log(chatInfo);
 	    		if(chatInfo && setting.nowQuestionsSelectInfo.hasOwnProperty(chatInfo.user) == false){
 	    			setting.nowQuestionsSelectInfo[chatInfo.user] = chatInfo.message//{'userMessage' : chatInfo.message};
 	    			let isSubjective = setting[setting.gameSelectKey].isSubjective[setting[setting.gameSelectKey].page - 1];
@@ -266,6 +268,11 @@
     						t += Number(e[1]);
     						return t;
     					}, 0);
+	    				let answer = setting[setting.gameSelectKey].answers[setting[setting.gameSelectKey].page - 1];
+	    				let userAnswer = chatInfo.message.substring(setting.chatSeparator.length);
+	    				if(answer == userAnswer){
+	    					setting[setting.gameSelectKey].answerUserList[setting[setting.gameSelectKey].page - 1][chatInfo.user] = chatInfo.message;
+	    				}
 	    			}else{
 			    		let message = chatInfo.message.substring(setting.chatSeparator.length).charAt(0);
 			    		let targetObject = setting.nowQuestionsInfo[message];
@@ -276,6 +283,11 @@
 			    			t += e.userSelectCount;
 			    			return t;
 			    		}, 0); 
+			    		
+			    		let answer = setting[setting.gameSelectKey].answers[setting[setting.gameSelectKey].page - 1];
+	    				if(answer == message){
+	    					setting[setting.gameSelectKey].answerUserList[setting[setting.gameSelectKey].page - 1][chatInfo.user] = chatInfo.message;
+	    				}
 	    			}
 					return setTimeout(resolve(true), 1);
 	    		}
@@ -380,7 +392,7 @@
     }
 </script>
 </head>
-<body style="height: 100%; min-height: 100%;" oncontextmenu="return false">>
+<body style="height: 100%; min-height: 100%;" oncontextmenu="return false">
 	<div id="all_content_wrap" style="background-image: url('images/jululu_background_image_night.png'); 
 		background-repeat: no-repeat;
     	background-size: 100% 100%;position:absolute; top:0; bottom:0; right:0; left:0;
@@ -727,6 +739,7 @@
 			    					setting.cottonQuestions.questionsList[nowPageValue - 1] = resultQuestions;
 			    					setting.cottonQuestions.answers[nowPageValue - 1] = isSubjective ? `${setting.chatSeparator}${answer.value}` : multipleChoiceAnswer.value;
 			    					setting.cottonQuestions.isSubjective[nowPageValue - 1] = isSubjective;
+			    					setting.cottonQuestions.answerUserList[nowPageValue - 1] = {};
 			    					nowPage.textContent = `${nowPageValue + 1}`.padStart(2,'0');
 			    					if(setting.thisPageIsExist(nowPageValue, [setting.cottonQuestions.questionsList, setting.cottonQuestions.answers])
 			    						){
@@ -742,6 +755,7 @@
 			    					setting.cottonQuestions.questionsList.push(resultQuestions);
 			    					setting.cottonQuestions.answers.push(isSubjective ? `${setting.chatSeparator}${answer.value}` : multipleChoiceAnswer.value);
 			    					setting.cottonQuestions.isSubjective.push(isSubjective);
+			    					setting.cottonQuestions.answerUserList.push({});
 			    					questionsTextDelete(title, questionsArr, answer);
 			    					multipleChoiceInputList.forEach(e=>e.value = '');
 			    					multipleChoiceAnswerList.forEach(e=>e.checked = false);
@@ -832,14 +846,12 @@
 				var chatQuestionsViewItemWrapper = chatQuestionsViewWrapper.querySelectorAll('.chat_questions_view_item_wrapper')
 				var chatQuestionsChatGraph;
 				var questionUserSelectNumber;
+				
 				function createChatWrapper(){
 					if(canvas.hasAttribute('is_canvas_run') === false ||
 						canvas.getAttribute('is_canvas_run') === 'N' || setting.isStartGame == false
 					){
 						return;
-					}
-					if(Object.keys(setting.nowQuestionsInfo).length != 0){
-						setting[setting.gameSelectKey].questionUserInfo.push(setting.nowQuestionsInfo);
 					}
 					setting.nowQuestionsInfo = {}
 					setting.nowQuestionsSelectInfo = {};
@@ -945,6 +957,7 @@
 	        camera.attachControl(canvas, true);
 	        camera.setTarget(BABYLON.Vector3.Zero());
 	        camera.speed = 0.5
+	        camera.wheelDeltaPercentage = 0.01;
 	        testCamera = camera;
 	        //광원 생성
 	        const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));

@@ -9,8 +9,9 @@ class ModalLoader{
 		
 		this.modalAlert.innerHTML = 
 			`
-			<div class="modal_wrapper" style="display: flex; justify-content: center; align-items: flex-start;">
-				<div class="modal_content" style="background-color: azure;width: auto;height: auto;display: flex;justify-content: center;align-items: center;border-radius: 1vmax;font-family: monospace;font-weight: bold;flex-direction: column-reverse;font-size: 1vmax;padding: 1%;">
+			<div class="modal_wrapper" style="display: flex; justify-content: center; align-items: flex-start; -ms-user-select: none; -moz-user-select: -moz-none; -webkit-user-select: none; -khtml-user-select: none; user-select:none; margin:0;"
+				onclick="this.parentElement.click();">
+				<div class="modal_content" style="background-color: azure;width: auto;height: auto;display: flex;justify-content: center;align-items: center;border-radius: 1vmax;font-family: monospace;font-weight: bold;flex-direction: column-reverse;font-size: 2vmax;padding: 1%; margin:0">
 					<button style="margin-top: 5%;background-color: #9da3a647;color: black;border-radius: 1vmax;font-family: monospace;"
 							onclick="this.offsetParent.close();this.parentElement.querySelectorAll('div').forEach(e=>e.remove());">확인</button>
 				</div>
