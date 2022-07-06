@@ -72,6 +72,9 @@
 	body::-webkit-scrollbar{
 		display: none;
 	}
+	body.block_scroll{
+		overflow: hidden;
+	}
 	@media( orientation: portrait ){
 	  html {
 	    transform: rotate(0deg);
@@ -139,6 +142,13 @@
 window.addEventListener('load',() => {
 	modalLoader = new ModalLoader();
 	modalLoader.setModalAlert();
+	canvasRect = canvas.getBoundingClientRect();
+	canvas.addEventListener('mouseover',(event)=>{
+		this.document.body.classList.add('block_scroll');
+	});
+	canvas.addEventListener('mouseout',(event)=>{
+		this.document.body.classList.remove('block_scroll');
+	});
 });
 </script>
 <title>Insert title here</title>
@@ -514,6 +524,7 @@ var scene;
 var testCamera;
 var createScene;
 var test;
+var test2;
 function View3DCreate() {
     //공간 선언
     scene = new BABYLON.Scene(engine);
@@ -543,13 +554,16 @@ function View3DCreate() {
     //광원 생성
     const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
     
-    BABYLON.SceneLoader.ImportMeshAsync(null, "https://models.babylonjs.com/", "fish.glb");
+    //BABYLON.SceneLoader.ImportMeshAsync(null, "https://models.babylonjs.com/", "fish.glb");
    	BABYLON.SceneLoader.ImportMeshAsync(null, "https://models.babylonjs.com/", "fish.glb").then(e=>{
+   		test2=e;
     	e.meshes.forEach(mesh=>{
     		mesh.position.x = -30
+    		test = mesh;
     	})
     	e.animationGroups[0].speedRatio = 0.7
     });
+   	/*
    	BABYLON.SceneLoader.ImportMeshAsync(null, "https://models.babylonjs.com/", "fish.glb").then(e=>{
     	e.meshes.forEach(mesh=>{
     		mesh.position.x = -40
@@ -572,7 +586,8 @@ function View3DCreate() {
     	})
     	e.animationGroups[0].speedRatio = 0.3
     });
-    
+   	*/
+   	
     const xrPromise = scene.createDefaultXRExperienceAsync({
         floorMeshes: [scene]
     });
