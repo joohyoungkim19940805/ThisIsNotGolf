@@ -2,11 +2,17 @@
 <html lang="ko" xmlns:th="http://www.thymeleaf.org" style="font-size: 1.5vmax;">
 <head>
 <meta charset="UTF-8">
+<title>아쿠아리움 예제 사이트</title>
+<link rel="icon" type="image/x-icon" th:href="@{images/aquarium_logo.png}"/>
 <link th:href="@{css/common.css}" rel="stylesheet" />
 <script src="https://cdn.babylonjs.com/babylon.js"></script>
 <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.min.js"></script>
 <script src="https://cdn.babylonjs.com/materialsLibrary/babylon.waterMaterial.js"></script>
 <script type="text/javascript" th:src="@{js/client/ModalLoader.js}"></script>
+<script src="https://cdn.babylonjs.com/gui/babylon.gui.js"></script>
+<script src="https://preview.babylonjs.com/Oimo.js"></script>
+<script src="https://preview.babylonjs.com/cannon.js"></script>
+<script src="https://preview.babylonjs.com/ammo.js"></script>
 <style>
 	ul.detail_menu{
     	position: absolute;
@@ -20,6 +26,12 @@
     	padding-bottom: 4.5%;
     	cursor : pointer;
 		background-color: #6bb4d5a8;
+		white-space: normal;
+		display: -webkit-box;
+		-webkit-line-clamp: 1;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+		border-bottom: groove;
 	}
 	
 	/*
@@ -142,24 +154,32 @@
 window.addEventListener('load',() => {
 	modalLoader = new ModalLoader();
 	modalLoader.setModalAlert();
-	canvasRect = canvas.getBoundingClientRect();
-	canvas.addEventListener('mouseover',(event)=>{
-		this.document.body.classList.add('block_scroll');
-	});
-	canvas.addEventListener('mouseout',(event)=>{
-		this.document.body.classList.remove('block_scroll');
-	});
+	//any-pointer: coarse
+	//pointer:coarse
+	if(window.matchMedia("(pointer:coarse)").matches == false){
+		canvas.addEventListener('mouseover',(event)=>{
+			this.document.body.classList.add('block_scroll');
+		});
+		canvas.addEventListener('mouseout',(event)=>{
+			this.document.body.classList.remove('block_scroll');
+		});
+	}
 });
+
 </script>
-<title>Insert title here</title>
 
 </head>
 <body style="margin: 0;width: 100vw; height: 100vh; background-image:url('images/bg_top.jpg'); background-size: cover;" oncontextmenu="return false">
 <div>
-<header style="position: absolute;width: 100%;top: 0; font-size: 1.7vmax;margin: 0;">
+<header style="position: absolute;width: 100%;top: 0; font-size: 1.7vmax;margin: 0; z-index: 2;">
 	<div class="header_button_wrapeer" style="margin:0;padding: 1%;border-bottom-color: initial;border-bottom-style: ridge;border-bottom-width: thin;background-color: #0000004d;">
 		<nav>
-			<ul style="display:flex; justify-content: space-around;">
+			<ul style="display:flex;justify-content: space-around;align-items: center;">
+				<li>
+					<a href="javascript:location.reload();">
+						<img th:src="@{images/aquarium_logo.png}" style="height: 8vh;width: 15vw;" />
+					</a>	
+				</li>
 				<li>
 					<details class="top_details">
 						<summary class="menu_detail_summary" onclick="toggleSummeryAndCanvas(this)">
@@ -253,8 +273,9 @@ window.addEventListener('load',() => {
 				topMenuList.forEach((e,i)=>{
 					let rect = e.getBoundingClientRect();
 					let detailRect = detailList[i].getBoundingClientRect();
+					console.log(event.composedPath());
 					if((event.x > rect.left && event.x < rect.right && event.y > (rect.top - (detailRect.height + detailRect.y)) && event.y < rect.bottom) == false 
-						&& event.path.some(e=>e.tagName === 'DIALOG') == false)
+						&& event.composedPath().some(e=>e.tagName === 'DIALOG') == false)
 					{
 						detailList[i].open = false;	
 						/*
@@ -298,7 +319,7 @@ window.addEventListener('load',() => {
 		        </button>
 	     		<ul id="to_day_event_view">
 					<li>
-						<a href="javascript:void(0)">
+						<a href="javascript:void(0)" onclick="fishMad();">
 		            		<img th:src="@{images/pieces-of-cutlery.png}"style="width: 2.5vmax;"/> 
 			            	<span>상어 먹이 주기</span>
 		            	</a>
@@ -310,7 +331,7 @@ window.addEventListener('load',() => {
 	                	</a>
 	                </li>
 	                <li>
-	                	<a href="javascript:void(0)">
+	                	<a href="javascript:void(0)" onclick="setPhysics();">
 		            		<img th:src="@{images/eye.png}"style="width: 2.5vmax;"/> 
 		                	<span>해양 동물 구조 체험</span>
 	                	</a>
@@ -521,8 +542,9 @@ const engine = new BABYLON.Engine(canvas, true);
 
 var legalPad;
 var scene;
-var testCamera;
+var camera;
 var createScene;
+var isFollowCam = false;
 var test;
 var test2;
 function View3DCreate() {
@@ -539,55 +561,164 @@ function View3DCreate() {
     const target = new BABYLON.Vector3(0, 5, 5);
         
     //카메라의 초기 위치 셋팅
-    const camera = new BABYLON.ArcRotateCamera("Camera", alpha, beta, radius, target, scene);
+    camera = new BABYLON.ArcRotateCamera("Camera", alpha, beta, radius, target, scene);
     camera.attachControl(canvas, true);
-    camera.setTarget(BABYLON.Vector3.Zero());
+   	camera.setTarget(BABYLON.Vector3.Zero());
     camera.speed = 0.5
     camera.wheelDeltaPercentage = 0.01;
     camera.x = -47.8774;
     camera.y = 41.8426;
     camera.z = 21.137114;
-    camera.beta = 1.1682455663376912;
-    camera.alpha = -7.708849574681984;
-    camera.radius = 75.30505333052788
-    testCamera = camera;
+    camera.beta = 1.289062431626049;
+    camera.alpha = -9.4728763141085;
+    camera.radius = 75.07074702067573;
+    camera.maxCameraSpeed = 5
+    //camera.detachControl();
     //광원 생성
     const light = new BABYLON.HemisphericLight("light", new BABYLON.Vector3(1, 1, 0));
     
-    //BABYLON.SceneLoader.ImportMeshAsync(null, "https://models.babylonjs.com/", "fish.glb");
-   	BABYLON.SceneLoader.ImportMeshAsync(null, "https://models.babylonjs.com/", "fish.glb").then(e=>{
-   		test2=e;
-    	e.meshes.forEach(mesh=>{
-    		mesh.position.x = -30
-    		test = mesh;
+    let cannon = true;
+    let forceFactor = cannon ? 1 : 1500; 
+    
+    BABYLON.SceneLoader.ImportMeshAsync(null, "/model/", "waltz_of_the_sharks.glb").then(sharks=>{
+    	sharks.meshes[0].position.x = 120;
+    	sharks.meshes.forEach(e=>{
     	})
-    	e.animationGroups[0].speedRatio = 0.7
     });
-   	/*
-   	BABYLON.SceneLoader.ImportMeshAsync(null, "https://models.babylonjs.com/", "fish.glb").then(e=>{
-    	e.meshes.forEach(mesh=>{
-    		mesh.position.x = -40
-    		mesh.position.z = 20
+    BABYLON.SceneLoader.ImportMeshAsync(null, "/model/", "museum2.glb").then(museum=>{
+    	test2 = museum;
+    	museum.meshes[0].position.x = 110;
+    	museum.meshes[0].position.y = -15;
+    	museum.meshes[0].position.z = 15;
+    	let advancedTexture = new BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+    	advancedTexture.useInvalidateRectOptimization = false;
+
+    	let guiRect = Object.assign( new BABYLON.GUI.Rectangle(),{
+    			width : '400px',
+    			height : '400px',
+    			thickness : 2,
+    			linkOffsetX : '250px',
+    			linkOffsetY : '200px',
+    			transformCenterX : 0,
+    			transformCenterY : 0,
+    			background : 'grey',
+    			alpha : 0.7,
+    			scaleX : 0,
+    			scaleY : 0,
+    			cornerRadius : 30
+    	});
+
+    	advancedTexture.addControl(guiRect);
+    	guiRect.linkWithMesh( museum.meshes[1] ); 
+        let hoverText = Object.assign( new BABYLON.GUI.TextBlock(), {
+        	color : "White",
+        	fontSize : 45,
+        	textWrapping : true,
+        	textVerticalAlignment : BABYLON.GUI.Control.HORIZONTAL_ALIGNMENT_CENTER,
+			background : '#006994',
+			width : '200px',
+			height : '200px'
+        });
+        guiRect.addControl(hoverText);
+        hoverText.alpha = (1/hoverText.parent.alpha);
+        hoverText.paddingTop = '10px',
+        hoverText.paddingBottom = '10px',
+        hoverText.paddingLeft = '10px',
+        hoverText.paddingRight = '10px'
+        hoverText.text = '먹혀버린 물고기'
+
+        let guiScaleXAnimation = new BABYLON.Animation("guiScaleXAnimation", "scaleX", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+        let guiScaleYAnimation = new BABYLON.Animation("guiScaleYAnimation", "scaleY", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+        let key = [
+        	{
+        		frame : 0, value : 0
+        	},
+        	{
+        		frame : 10, value : 1
+        	}
+        ]
+        guiScaleXAnimation.setKeys(key);
+        guiScaleYAnimation.setKeys(key);
+        guiRect.animations = [];
+        guiRect.animations.push(guiScaleXAnimation);
+        guiRect.animations.push(guiScaleYAnimation);
+        museum.meshes[1].actionManager = new BABYLON.ActionManager(scene);
+        let isOpenGuiWrap = false;
+        museum.meshes[1].actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, function(ev){
+        	if(isOpenGuiWrap == false){
+        		scene.beginAnimation(guiRect, 0, 10, false);
+        		isOpenGuiWrap = !isOpenGuiWrap;
+        	}else{
+        		scene.beginAnimation(guiRect, 10, 0, false);
+        		isOpenGuiWrap = !isOpenGuiWrap;
+        	}
+        }));
+    });
+    BABYLON.SceneLoader.ImportMeshAsync(null, "/model/", "marine_life.glb").then(marine_life=>{
+    	marine_life.meshes[0].position.x = 0; 
+    	marine_life.meshes[0].position.y = -10; 
+    	marine_life.meshes[0].position.z = -20;
+    	camera.lockedTarget = marine_life.meshes[2]
+    	test = marine_life;
+    });
+    BABYLON.SceneLoader.ImportMeshAsync(null, "/model/", "atlantic_sturgeon.glb").then(e=>{
+    	atlanticSturgeon = e;
+    	let sturgeonAnimationPosisionZ = new BABYLON.Animation("tutoAnimation", "position.z", 3, BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+                BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+    	//undefined
+    	let zMaxValue = 0;
+    	let zAddVal = 40;
+    	let posisionZ = [];
+    	let posisionX = [];
+    	
+    	posisionZ.push({frame:0, value:0})
+    	posisionZ.push(...[1,2,3,4,5,6,7,8,9,10].map(frm=>{
+    		zMaxValue = frm * zAddVal;
+    		return {frame : frm * 10, value : zMaxValue};
+    	}));
+    	sturgeonAnimationPosisionZ.setKeys(posisionZ);
+		e.meshes[0].animations.push(sturgeonAnimationPosisionZ);
+		scene.beginAnimation(e.meshes[0],  0, 200, true, 1);
+    	
+    	e.meshes[1].actionManager = new BABYLON.ActionManager(scene);
+    	e.meshes[1].actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, function(ev){
+           	if(isFollowCam == false){
+           		camera.lockedTarget = e.meshes[1];
+           		isFollowCam = !isFollowCam;
+           	}else{
+           		camera.lockedTarget = '';
+           		setDefultCamera();
+           		isFollowCam = !isFollowCam;
+           	}
+           }));
+    	e.meshes.forEach(meshe=>{
+    		meshe.position.z = -0.5;
+    		meshe.physicsImpostor = new BABYLON.PhysicsImpostor(meshe, BABYLON.PhysicsImpostor.SphereImpostor, {mass: 4});
     	})
-    	e.animationGroups[0].speedRatio = 1.3
     });
-   	
-    BABYLON.SceneLoader.ImportMeshAsync(null, "https://models.babylonjs.com/", "fish.glb").then(e=>{
-    	e.meshes.forEach(mesh=>{
-    		mesh.position.x = 40
-    		mesh.position.z = -15
-    	})
-    	e.animationGroups[0].speedRatio = 1.7
-    });
-   	BABYLON.SceneLoader.ImportMeshAsync(null, "https://models.babylonjs.com/", "fish.glb").then(e=>{
-    	e.meshes.forEach(mesh=>{
-    		mesh.position.x = 40
-    		mesh.position.y = 10
-    	})
-    	e.animationGroups[0].speedRatio = 0.3
-    });
-   	*/
-   	
+   	BABYLON.SceneLoader.ImportMeshAsync(null, "https://models.babylonjs.com/", "fish.glb").then(fishs=>{
+   		fishObj = fishs;
+   		/*test=fishObj;
+   		fishObj.animationGroups[0].speedRatio = 1
+        BABYLON.SceneLoader.ImportMeshAsync(null, "/model/", "atlantic_sturgeon.glb").then(sturgeon=>{
+       		fishObj.animationGroups[0].targetedAnimations.forEach((e,i)=>{
+       			
+       			let animationName =  e.animation.targetProperty;
+       			let framePerSecond = e.animation.framePerSecond;
+       			let animationKey = e.animation.getKeys();
+       			let animationObject = new BABYLON.Animation("ani"+i, animationName, framePerSecond, e.animation.dataType,
+       					e.animation.loopMode);
+       			animationObject.setKeys(animationKey);
+       			
+       			sturgeon.meshes[0].animations.push(animationObject);
+       		});
+   			sturgeon.meshes.forEach(meshe=>{
+        		meshe.position.z = -0.5;
+        	})
+        	test2 = sturgeon;
+   			scene.beginAnimation(sturgeon.meshes[0],  0, 500, true, 1);
+        });*/
+    });    
     const xrPromise = scene.createDefaultXRExperienceAsync({
         floorMeshes: [scene]
     });
@@ -598,8 +729,46 @@ function View3DCreate() {
     function createVideoStartButton(command){
 
     }
-    
+    function setDefultCamera(){
+        camera.x = -47.8774;
+        camera.y = 41.8426;
+        camera.z = 21.137114;
+        camera.beta = 1.289062431626049;
+        camera.alpha = -9.4728763141085;
+        camera.radius = 75.07074702067573;
+    }
 };
+
+	var isFishMad = false;
+	var fishObj;
+	var atlanticSturgeon;
+	function fishMad(){
+		if(fishObj){
+			if(isFishMad == false){
+				fishObj.animationGroups[0].speedRatio = 15;
+				isFishMad = !isFishMad
+			}else{
+				fishObj.animationGroups[0].speedRatio = 1;	
+				isFishMad = !isFishMad
+			}
+		}
+	}
+	function setPhysics(){
+		if(fishObj && atlanticSturgeon){
+		    scene.enablePhysics();
+			atlanticSturgeon.meshes.forEach(meshe=>{
+	    		meshe.physicsImpostor = new BABYLON.PhysicsImpostor(meshe, BABYLON.PhysicsImpostor.SphereImpostor, {mass: 4, restitution: 0.4});
+	    	});
+			fishObj.meshes.forEach(e=>{
+	   	    	e.physicsImpostor = new BABYLON.PhysicsImpostor(e, BABYLON.PhysicsImpostor.SphereImpostor, {mass: 2, restitution: 0.4});
+	   	    });
+			/*
+		    let ground = BABYLON.Mesh.CreateGround("ground1", 5000, 5000, 2, scene);
+		    ground.position.y = -20;
+		    ground.physicsImpostor = new BABYLON.PhysicsImpostor(ground, BABYLON.PhysicsImpostor.BoxImpostor, {mass:0, restitution: 0.4, friction: 0.5})
+			*/
+		}
+	}
 	function run3Dview(){
 		createScene = View3DCreate();
         createScene.then(sceneToRender => {
