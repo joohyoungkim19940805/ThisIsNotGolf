@@ -27,7 +27,5 @@ public class ProjectApplication {
         // starter-web은 SERVLET으로 자동으로 선택한다. 이것을 강제로 REACTIVE로 바꾼다.
         application.run(args);
         */
-        
 	}
-
 }
