@@ -646,9 +646,12 @@ function View3DCreate() {
         let isOpenGuiWrap = false;
         museum.meshes[1].actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, function(ev){
         	if(isOpenGuiWrap == false){
+        		camera.lockedTarget = museum.meshes[1]
         		scene.beginAnimation(guiRect, 0, 10, false);
         		isOpenGuiWrap = !isOpenGuiWrap;
         	}else{
+        		camera.lockedTarget = '';
+        		setDefultCamera();
         		scene.beginAnimation(guiRect, 10, 0, false);
         		isOpenGuiWrap = !isOpenGuiWrap;
         	}
@@ -690,10 +693,9 @@ function View3DCreate() {
            		setDefultCamera();
            		isFollowCam = !isFollowCam;
            	}
-           }));
+        }));
     	e.meshes.forEach(meshe=>{
     		meshe.position.z = -0.5;
-    		meshe.physicsImpostor = new BABYLON.PhysicsImpostor(meshe, BABYLON.PhysicsImpostor.SphereImpostor, {mass: 4});
     	})
     });
    	BABYLON.SceneLoader.ImportMeshAsync(null, "https://models.babylonjs.com/", "fish.glb").then(fishs=>{
@@ -719,8 +721,9 @@ function View3DCreate() {
    			scene.beginAnimation(sturgeon.meshes[0],  0, 500, true, 1);
         });*/
     });    
+   	scene.enablePhysics();
     const xrPromise = scene.createDefaultXRExperienceAsync({
-        floorMeshes: [scene]
+        floorMeshes: [fishObj]
     });
     return xrPromise.then((xrExperience) => {
     	console.log("Done, WebXR is enabled.");
@@ -755,7 +758,6 @@ function View3DCreate() {
 	}
 	function setPhysics(){
 		if(fishObj && atlanticSturgeon){
-		    scene.enablePhysics();
 			atlanticSturgeon.meshes.forEach(meshe=>{
 	    		meshe.physicsImpostor = new BABYLON.PhysicsImpostor(meshe, BABYLON.PhysicsImpostor.SphereImpostor, {mass: 4, restitution: 0.4});
 	    	});

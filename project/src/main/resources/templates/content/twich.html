@@ -58,8 +58,12 @@
 	    gap: 22vw;
 	    align-items: center;
 	}
+	.time_wrapper{
+		width:16vw;
+	}
 	.time_wrapper.not_timer_image{
 		background-color: #7546728c;
+		width:22vw;
 	}	
 	.time_wrapper.not_timer_image span.time_separator:after{
 		content:" :";
@@ -139,6 +143,7 @@
 		nowQuestionsTotalCount : 0,
 		nowQuestionsSelectInfo : {},
 		chatSeparator : '',
+		isOepnAnswer : false,
 		devQuestions : {
 			questionsList : questions.devQuestions,
 			//pageMax : 1,
@@ -406,7 +411,7 @@
 			<div class="top_button_list"></div>
 		</div>
 		-->
-		<div class="time_wrapper" style="position: absolute;display: flex;bottom: 11.4vh;right: 21.8vw;gap: 1.2vw;font-size: 3vmax;color: white;align-items: flex-end;width: 16vw;height: 8vh">
+		<div class="time_wrapper" style="position: absolute;display: flex;bottom: 11.4vh;right: 21.8vw;gap: 1.2vw;font-size: 3vmax;color: white;align-items: flex-end;height: 8vh">
             <span class="hour time_separator">00</span>
             <span class="minute time_separator">00</span>
             <span class="seconds time_separator_seconds">00</span>
@@ -1061,6 +1066,7 @@
 	        		modalLoader.createModalAlertText(['타이머가 돌고 있습니다.']);
 	        		return;
 	        	}
+	        	setting.isOepnAnswer = false;
 	        	let targetQuestions = setting[setting.gameSelectKey];
         		targetQuestions.page++;
 	        	
@@ -1088,6 +1094,7 @@
 	        		modalLoader.createModalAlertText(['타이머가 돌고 있습니다.']);
 	        		return;
 	        	}
+	        	setting.isOepnAnswer = false;
 	        	let targetQuestions = setting[setting.gameSelectKey];
         		targetQuestions.page--;
 	        	if(targetQuestions.type != 2 && targetQuestions.type != -1){
@@ -1117,6 +1124,7 @@
 	        
 	        groundAnswerSelect.actionManager = new BABYLON.ActionManager(scene);
 	        groundAnswerSelect.actionManager.registerAction( new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, (evt) => {
+	        	setting.isOepnAnswer = true;
 	        	cameraSetAndDetach(camera);
 	        	let isSubjective = setting[setting.gameSelectKey].isSubjective[setting[setting.gameSelectKey].page - 1];
 				if(isSubjective){
@@ -1184,6 +1192,10 @@
 	        
 	        groundTimer.actionManager = new BABYLON.ActionManager(scene);
 	        groundTimer.actionManager.registerAction( new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, (evt) => {
+	        	if(setting.isOepnAnswer){
+	        		modalLoader.createModalAlertText(['이미 정답이 공개되었습니다.']);
+	        		return;
+	        	}
 	        	let timerLayer = document.querySelector('#timer_setting_layer');
 	        	if(timer.inputMinute == 0){
 	        		timerLayer.style.display='flex';
@@ -1271,7 +1283,7 @@
 		            canvas.setAttribute('is_canvas_run', 'Y')
 		        });
 				canvas.style.display = 'flex';
-				document.querySelector('#chat_questions_view_wrapper').style.display = 'flex'
+				document.querySelector('#chat_questions_view_wrapper').style.display = 'none'
 				//let targetQuestions = setting[setting.gameSelectKey];
 				//text = targetQuestions.questionsList[targetQuestions.page - 1].split('\n');
 				//padQuestionInfo = createText();
