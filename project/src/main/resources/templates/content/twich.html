@@ -124,6 +124,14 @@
     .video_questions_select{
    		min-width : 25vw;
    	}
+   	#chat_record_wrapper summary{
+   		cursor: pointer;
+    	text-decoration: underline;
+    	padding-left: 5%;
+    }
+    #chat_record_wrapper details {
+    	margin-bottom: 10%;
+    }
 </style>
 <script type="text/javascript">
 	const randomColor = ['#ffffff','#fff5ee','#fffafa','#f8f8ff','#fffaf0','#f5f5f5','#f0f8ff','#f0ffff','#fdf5e6','#f5fffa','#ffefd5','#ffdab9','#faf0e6','#eee8aa','#ffe4e1','#ffe4b5','#ffdead','#d2b48c','#f5deb3','#fafad2','#ffffe0','#fff8dc','#faebd7','#f5f5dc','#fffacd','#fffff0','#f0e68c','#e6e6fa','#fff0f5','#ffe4c4','#ffebcd','#deb887','#cd853f','#00ced1','#00bfff','#7fffd4','#1e90ff','#00ffff','#f0fff0','#87cefa','#afeeee','#e0ffff','#add8e6','#b0c4de','#40e0d0','#48d1cc','#00ffff','#b0e0e6','#87ceeb','#4169e1','#ff00ff','#ff00ff','#c71585','#dc143c','#ff1493','#ffb6c1','#ff69b4','#ffc0cb','#dda0dd','#ee82ee','#d8bfd8','#da70d6','#a52a2a','#e9967a','#f08080','#cd5c5c','#ffa07a','#db7093','#f4a460','#fa8072','#ff6347','#ff4500','#ff0000','#b22222','#d2691e','#bc8f8f','#ff7f50','#ff8c00','#ffa500','#b8860b','#ffd700','#ffff00','#7fff00','#7cfc00','#00ff00','#32cd32','#00ff7f','#3cb371','#adff2f','#8fbc8f','#90ee90','#98fb98','#2e8b57','#00fa9a','#20b2aa','#66cdaa','#6b8e23','#bdb76b','#daa520'];
@@ -267,6 +275,7 @@
 		    					targetObject.userSelectCount = answerListSort[i][1];
 		    					targetObject.userSelectCountHTML.textContent = answerListSort[i][1];
 		    					targetObject.questionsLabel.textContent = answerListSort[i][0];
+		    					targetObject.questionsTextContent = answerListSort[i][0];
 	    					}
 	    				})
     					setting.nowQuestionsTotalCount = answerListSort.reduce((t,e) => {
@@ -448,7 +457,7 @@
 		<div id="option_layer" style="position: absolute;width: 100%;height: 100%;display: none;background-color: rgba(240, 248, 255, 0.29);opacity: 1;justify-content: center;align-items: center; top: 0; left: 0; z-index:2;">
 			<script>
 				document.querySelector('#option_layer').onclick = function(e) {
-					return e.path[0] === this ? this.style.display = 'none' : false
+					return e.composedPath()[0] === this ? this.style.display = 'none' : false
 				}
 			</script>
 			<div class="option_menu" style="width: 13%;height: 33%;display: grid;background-color: #ffbad6d1;align-items: center;align-content: space-evenly;justify-items: center;border-radius: 100%;">
@@ -490,7 +499,7 @@
 			    	</script>
 			    </div>
 			    <div class="menu_component">
-			    	<button type="button" class="option_menu_button">미구현3</button>
+			    	<button type="button" class="option_menu_button" onclick="this.offsetParent.style.display = 'none'; createRecordContent();">문제 기록 보기</button>
 			    </div>
 			    <div class="menu_component">
 			    	<button type="button" class="option_menu_button">미구현4</button>
@@ -501,7 +510,7 @@
 		<div id="timer_setting_layer" style="position: absolute;width: 100%;height: 100%;display: none;background-color: rgba(240, 248, 255, 0.29);opacity: 1;justify-content: center;align-items: center; top: 0; left: 0; z-index:2;">
 			<script type="text/javascript">
 				document.querySelector('#timer_setting_layer').onclick = function(e) {
-					return e.path[0] === this ? this.style.display = 'none' : false
+					return e.composedPath()[0] === this ? this.style.display = 'none' : false
 				}
 			</script>
 			<div class="timer_setting_menu" style="width: 33%;height: 33%;display: grid;background-color: #81efe7d1;align-items: center;align-content: space-evenly;justify-items: center;border-radius: 10%;">
@@ -535,7 +544,7 @@
 		<div id="game_select_layer" style="position: absolute;width: 100%;height: 100%;display: none;background-color: rgba(240, 248, 255, 0.29);opacity: 1;justify-content: center;align-items: center; top: 0; left: 0; z-index:2;">
 			<script type="text/javascript">
 				document.querySelector('#game_select_layer').onclick = function(e) {
-					return e.path[0] === this ? this.style.display = 'none' : false
+					return e.composedPath()[0] === this ? this.style.display = 'none' : false
 				}
 			</script>
 			<div class="game_select_menu" style="width: 22%;height: 49%;display: grid;background-color: #db5dffde;align-items: center;align-content: space-evenly;justify-items: center;border-radius: 10%;">
@@ -870,6 +879,7 @@
 					if(isSubjective){
 						questionsItemHtml = [0,1,2,3,4,5,6,7].map((e,i)=>{
 							let label = Object.assign( document.createElement('label'), {className : "questions_label", textContent : ''} );
+							let questionsTextContent = '';
 							let span = Object.assign( document.createElement('span'), {className : "questions_user_select_number", textContent: 0});
 							let chartWrapper = Object.assign( document.createElement('div'), {className : "chat_questions_chart"});
 							let chartGraph = Object.assign( document.createElement('div'), {className : "chat_questions_chart_graph"});
@@ -879,7 +889,7 @@
 							let div = Object.assign(document.createElement('div'),{className:'chat_questions_chart_statistics_wrapper'});
 							div.append(...[label, span, chartWrapper]);
 							
-							let obj = {'questionsLabel':label, 'chartValueHTML' : chartGraph, 'userSelectCountHTML' : span, 'chartValue' : 0, 'userSelectCount' : 0, 'questionsLabel' : label, 'questionsText' : questionsObj.questionsList[page - 1], 'isSubjective': isSubjective};
+							let obj = {'questionsLabel':label, 'chartValueHTML' : chartGraph, 'userSelectCountHTML' : span, 'chartValue' : 0, 'userSelectCount' : 0, 'questionsLabel' : label, 'questionsText' : questionsObj.questionsList[page - 1], 'isSubjective': isSubjective, 'questionsTextContent' : questionsTextContent};
 							setting.nowQuestionsInfo[i] = obj;
 							setting.nowQuestionsInfo.answerTextObj = {};
 							return div;
@@ -898,6 +908,7 @@
 												`
 							*/
 								let label = Object.assign( document.createElement('label'), {className : "questions_user_select", textContent : questionsUserSelect + "번"} );
+								let questionsTextContent = questionsUserSelect + "번";
 								//label.setAttribute('data-text_value', questionsText)
 								let span = Object.assign( document.createElement('span'), {className : "questions_user_select_number", textContent: 0});
 								let chartWrapper = Object.assign( document.createElement('div'), {className : "chat_questions_chart"});
@@ -908,7 +919,7 @@
 								let div = Object.assign(document.createElement('div'),{className:'chat_questions_chart_statistics_wrapper'});
 								div.append(...[label, span, chartWrapper]);
 								
-								let obj = {'chartValueHTML' : chartGraph, 'userSelectCountHTML' : span, 'chartValue' : 0, 'userSelectCount' : 0, 'questionsLabel' : label, 'questionsTitle' : questionsTilte, 'questionsText' : questionsText, 'isSubjective' : isSubjective};
+								let obj = {'chartValueHTML' : chartGraph, 'userSelectCountHTML' : span, 'chartValue' : 0, 'userSelectCount' : 0, 'questionsLabel' : label, 'questionsTitle' : questionsTilte, 'questionsText' : questionsText, 'isSubjective' : isSubjective, 'questionsTextContent': questionsTextContent};
 								setting.nowQuestionsInfo[questionsUserSelect] = obj;
 								return div;
 						});
@@ -923,6 +934,8 @@
 					obj.userSelect = JSON.parse(JSON.stringify(setting.nowQuestionsSelectInfo));
 					obj.TotalCount = setting.nowQuestionsTotalCount;
 					obj.answer = setting[setting.gameSelectKey].answers[setting[setting.gameSelectKey].page - 1];
+					obj.answerUserList = setting[setting.gameSelectKey].answerUserList[setting[setting.gameSelectKey].page - 1];
+					obj.gameType = setting.gameSelectKey;
 					setting.questionsRecord.push(obj);
 				}
 				
@@ -1124,6 +1137,10 @@
 	        
 	        groundAnswerSelect.actionManager = new BABYLON.ActionManager(scene);
 	        groundAnswerSelect.actionManager.registerAction( new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, (evt) => {
+	        	if(timer.isCustomRun){
+	        		modalLoader.createModalAlertText(['타이머가 돌고 있습니다.']);
+	        		return;
+	        	}
 	        	setting.isOepnAnswer = true;
 	        	cameraSetAndDetach(camera);
 	        	let isSubjective = setting[setting.gameSelectKey].isSubjective[setting[setting.gameSelectKey].page - 1];
@@ -1503,5 +1520,245 @@
    			}
    		</script>
    	</div>
+
+	<div id="chat_record_wrapper" style="background-color: rgb(54 54 54 / 60%);height: 100%;display: none;position: absolute;width: 50%;top: 0px;left: 25%;right: 25%;flex-direction: column;z-index: 1;overflow-y: scroll;color: white;">
+		<div id="chat_record_pageing" style="display: flex;justify-content: space-between;font-size: 2vmax;position: absolute;width: 100%;">
+			<a style="color: white;cursor: pointer;">◀</a>
+			<a style="color: white;cursor: pointer;">▶</a>
+		</div>
+   		<div id="chat_record_content" data-record_page="0">
+   		</div>
+		<!-- 
+		<span>주관식/객관식</span>
+		<div>문제 내용</div>
+		<details class="chat_record_statistics_details">
+			<summary class="chat_record_statistics_summary">통계보기</summary>
+			<div style="display: flex;">
+			    <div style="width: 50%;
+			    display: grid;
+			    align-items: center;
+			    font-size: 1.2vmax;
+			    font-weight: bold;">
+			        <label class="questions_label">ㄹㅇ</label>
+			        <span class="questions_user_select_number">
+			        </span>
+			        <div class="chat_questions_chart">
+			            <div class="chat_questions_chart_graph" style="background-color:rgb(255, 288, 181); width:24%"></div>
+			        </div>
+			    </div>
+			</div>
+		</details>
+		<details class="chat_record_answer_details">
+			<summary class="chat_record_answer_summary">주폭도들 정답/오답 내용 보기</summary>
+			<div>
+			</div>
+		</details>
+		<details class="chat_record_answer_user_details">
+			<summary class="chat_record_answer_user_summary">정답자 보기</summary>
+			<div>
+			</div>
+		</details>
+		<details class="chat_record_answer_statistics_details">
+			<summary class="chat_record_answer_statistics_summary">정답 내용 집계 보기(주관식 전용)</summary>
+			<div>
+			</div>
+		</details>
+		-->
+	</div>
+	<script>
+		function createRecordContent(){
+			let recordWrapper = document.querySelector('#chat_record_wrapper > #chat_record_content');
+			recordWrapper.closest('#chat_record_wrapper').style.display = 'flex';
+			let recordPageIndex = Number(recordWrapper.dataset.record_page);
+			let targetRecordPage = setting.questionsRecord[recordPageIndex];
+			let targetAnswerUsers = targetRecordPage.answerUserList;
+			let isSubjective = targetRecordPage.questionsInfo[1].isSubjective//setting[gameType].isSubjective[recordPageIndex]
+			let subjectiveTitle = Object.assign(document.createElement('div'),{textContent : `${isSubjective ? '주관식' : '객관식'}`})
+			Object.assign(subjectiveTitle.style, {textAlign:'center', paddingLeft:'10%', paddingRight:'10%', marginBottom:'2%', fontSize:'1.9vamx',fontWeight:'bold'});
+			let questionsTitle =  Object.assign(document.createElement('div'),{textContent : `${isSubjective ? targetRecordPage.questionsInfo[1].questionsText : targetRecordPage.questionsInfo[1].questionsTitle[0]}`})
+			Object.assign(questionsTitle.style, {textAlign:'center', paddingLeft:'10%', paddingRight:'10%', marginBottom:'3%', fontWeight: 'bold'});
+			
+			// 통계보기
+			let statisticsDetails = Object.assign(
+				document.createElement('details'),
+				{
+					innerHTML : `<summary class="chat_record_statistics_summary">통계보기</summary>`,
+					className : 'chat_record_statistics_details'
+				}
+			)
+			let questionsContent = Object.assign(
+				document.createElement('div'),
+				{
+					innerHTML : 
+						'<div style="width: 50%;display: grid;align-items: center;font-size: 1.2vmax;font-weight: bold;">' + 
+						Object.entries(targetRecordPage.questionsInfo).reduce((t,e,i)=> t += e[0] != 'answerTextObj' ? `
+					        <label class="questions_label">${e[1].questionsTextContent}</label>
+					        <span class="questions_user_select_number">
+					        	${e[1].userSelectCount}
+					        </span>
+					        <div class="chat_questions_chart">
+					            <div class="chat_questions_chart_graph" style="background-color:${getRandomColor()}; width:${e[1].chartValue*100}%;"></div>
+					        </div>
+						`:'','') +
+						'</div>'
+				}
+			)
+			questionsContent.style.display = 'flex';
+			statisticsDetails.append(questionsContent)
+			
+			
+			// 정답 내용들 보기
+			let answerDetails = Object.assign(
+				document.createElement('details'),
+				{
+					innerHTML : `<summary class="chat_record_answer_summary">주폭도들 정답/오답 내용 보기</summary>`,
+					className : 'chat_record_answer_details'
+				}
+			);
+			let answerDetailsContent = Object.assign(
+				document.createElement('div'),
+				{	className : 'answer_details_search_wrapper',
+					innerHTML : `
+						<div class="answer_search_filter_wrapper">
+							<label for="answer_details_search">유저 내용 또는 닉네임으로 검색</label>
+							<input id="answer_details_search" type="text" onkeydown=""/>
+							<select id="answer_details_search_option" onchange="">
+								<option value="0">닉네임</option>
+								<option value="1">내용</option>
+							</select>
+						</div>
+						<div class="answer_search_content_wrapper">
+						${Object.entries(targetRecordPage.userSelect).reduce((t,e,i) =>
+							t += `<div><span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> : <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span></div>`
+						,'')}
+						</div>
+					`
+				}
+			);
+			let answerSearchContentWrapper = answerDetailsContent.querySelector('.answer_search_content_wrapper');
+			let answerFilterText = answerDetailsContent.querySelector('#answer_details_search');
+			let answerFilterOption = answerDetailsContent.querySelector('#answer_details_search_option');
+			answerFilterText.onkeyup = ()=>{
+				answerSearchContentWrapper.replaceChildren(...Object.entries(targetRecordPage.userSelect).reduce((t,e,i) => {
+					if(answerFilterText.value==''){
+						t.push(Object.assign(
+								document.createElement('div'),
+								{innerHTML : `<span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span>`}
+							)
+						)
+					}else if(e[answerFilterOption.value].includes(answerFilterText.value)){
+						t.push(Object.assign(
+								document.createElement('div'),
+								{innerHTML : `<span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span>`}
+							)
+						)
+					}
+					return t;
+				},[]));
+			};
+			answerFilterOption.onchange = ()=>{
+				answerSearchContentWrapper.replaceChildren(...Object.entries(targetRecordPage.userSelect).reduce((t,e,i) => {
+					if(answerFilterText.value == ''){
+						t.push(Object.assign(
+								document.createElement('div'), 
+								{innerHTML : `<span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span></div>`}
+							)
+						)
+					}else if(e[answerFilterOption.value].includes(answerFilterText.value)){
+						t.push(Object.assign(
+								document.createElement('div'), 
+								{innerHTML : `<span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span></div>`}
+							)
+						)
+					}
+					return t;
+				},[]));
+			}
+			answerDetails.append(answerDetailsContent)
+			
+			
+			// 정답자 보기
+			let answerUserDetails = Object.assign(
+				document.createElement('details'),
+				{
+					innerHTML : `<summary class="chat_record_answer_user_summary">정답자 보기</summary>`,
+					className : 'chat_record_answer_user_details'
+				}
+			);
+			let answerUserContent = Object.assign(
+				document.createElement('div'),
+				{	className : 'answer_user_details_search_wrapper',
+					innerHTML : `
+						<div class="answer_user_search_filter_wrapper">
+							<label for="answer_user_search">유저 내용 또는 닉네임으로 검색</label>
+							<input id="asnwer_user_search" type="text"/>
+							<select id="answer_user_details_search_option">
+								<option value="0">닉네임</option>
+								<option value="1">내용</option>
+							</select>
+						</div>
+						<div class="answer_user_search_content_wrapper">
+						${Object.entries(targetAnswerUsers).reduce((t,e,i) =>
+							t += `<div><span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span></div>`
+						,'')}
+						</div>
+					`
+				}
+			);
+			let answerUserSearchContentWrapper = answerUserContent.querySelector('.answer_user_search_content_wrapper');
+			let answerUserFilterText = answerUserContent.querySelector('#asnwer_user_search');
+			let answerUserFilterOption = answerUserContent.querySelector('#answer_user_details_search_option');
+			answerUserFilterText.onkeyup = ()=>{
+				answerUserSearchContentWrapper.replaceChildren(...Object.entries(targetRecordPage.userSelect).reduce((t,e,i) => {
+					if(answerUserFilterText.value==''){
+						t.push(Object.assign(
+								document.createElement('div'),
+								{innerHTML : `<span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span>`}
+							)
+						)
+					}
+					else if(e[answerUserFilterOption.value].includes(answerUserFilterText.value)){
+						t.push(Object.assign(
+								document.createElement('div'),
+								{innerHTML : `<span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span>`}
+							)
+						)
+					}
+					return t;
+				},[]));
+			};
+			answerUserFilterOption.onchange = ()=>{
+				answerUserSearchContentWrapper.replaceChildren(...Object.entries(targetRecordPage.userSelect).reduce((t,e,i) => {
+					if(answerUserFilterText.value==''){
+						t.push(Object.assign(
+								document.createElement('div'), 
+								{innerHTML : `<span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span></div>`}
+							)
+						)
+					}
+					if(e[answerUserFilterOption.value].includes(answerUserFilterText.value)){
+						t.push(Object.assign(
+								document.createElement('div'), 
+								{innerHTML : `<span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span></div>`}
+							)
+						)
+					}
+					return t;
+				},[]));
+			}
+			answerUserDetails.append(answerUserContent);
+			
+			// 정답 내용 집계 보기(주관식전용)
+			/*let answerStatisticsDetails = Object.assign(
+				document.createElement('details'),
+				{
+					innerHTML : `<summary class="chat_record_answer_statistics_summary"></summary>`,
+					className : 'chat_record_answer_statistics_details'
+				}
+			)*/
+			recordWrapper.append(...[subjectiveTitle, questionsTitle, statisticsDetails, answerDetails, answerUserDetails]);
+			
+		}
+	</script>
 </body>
 </html>
