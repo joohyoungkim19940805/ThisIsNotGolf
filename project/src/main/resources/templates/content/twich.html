@@ -128,6 +128,7 @@
    		cursor: pointer;
     	text-decoration: underline;
     	padding-left: 5%;
+    	display: initial;
     }
     #chat_record_wrapper details {
     	margin-bottom: 10%;
@@ -1523,8 +1524,23 @@
 
 	<div id="chat_record_wrapper" style="background-color: rgb(54 54 54 / 60%);height: 100%;display: none;position: absolute;width: 50%;top: 0px;left: 25%;right: 25%;flex-direction: column;z-index: 1;overflow-y: scroll;color: white;">
 		<div id="chat_record_pageing" style="display: flex;justify-content: space-between;font-size: 2vmax;position: absolute;width: 100%;">
-			<a style="color: white;cursor: pointer;">◀</a>
-			<a style="color: white;cursor: pointer;">▶</a>
+			<a href="javascript:void(0);" style="color: white;cursor: pointer;" onclick="recordPagingClickEvent(this,event, -1);">◀</a>
+			<a href="javascript:void(0);" style="color: white;cursor: pointer;" onclick="recordPagingClickEvent(this,event, 1);">▶</a>
+			<script>
+				function recordPagingClickEvent(obj, event, pagingValue){
+					let recordPageContent = obj.closest('#chat_record_wrapper').querySelector('#chat_record_content');
+					let pagingNumber = Number(recordPageContent.dataset.record_page) + pagingValue;
+					if(pagingNumber > setting.questionsRecord.length -1){
+						pagingNumber = 0;
+					}else if(pagingNumber < 0){
+						pagingNumber = setting.questionsRecord.length -1;
+					}
+					
+					recordPageContent.dataset.record_page = pagingNumber
+					recordPageContent.replaceChildren();
+					createRecordContent();
+				}
+			</script>
 		</div>
    		<div id="chat_record_content" data-record_page="0">
    		</div>
@@ -1568,6 +1584,7 @@
 	<script>
 		function createRecordContent(){
 			let recordWrapper = document.querySelector('#chat_record_wrapper > #chat_record_content');
+			recordWrapper.replaceChildren();
 			recordWrapper.closest('#chat_record_wrapper').style.display = 'flex';
 			let recordPageIndex = Number(recordWrapper.dataset.record_page);
 			let targetRecordPage = setting.questionsRecord[recordPageIndex];
@@ -1586,6 +1603,7 @@
 					className : 'chat_record_statistics_details'
 				}
 			)
+			let questionsColorRecord = {};
 			let questionsContent = Object.assign(
 				document.createElement('div'),
 				{
@@ -1615,6 +1633,7 @@
 					className : 'chat_record_answer_details'
 				}
 			);
+			let answerDetailsContentColor = {};
 			let answerDetailsContent = Object.assign(
 				document.createElement('div'),
 				{	className : 'answer_details_search_wrapper',
@@ -1628,9 +1647,11 @@
 							</select>
 						</div>
 						<div class="answer_search_content_wrapper">
-						${Object.entries(targetRecordPage.userSelect).reduce((t,e,i) =>
-							t += `<div><span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> : <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span></div>`
-						,'')}
+						${Object.entries(targetRecordPage.userSelect).reduce((t,e,i) =>{
+							answerDetailsContentColor[e[0]] = {idColor:getRandomColor(), chatColor:getRandomColor()};
+							t += `<div><span class="chat_id" style="color:${answerDetailsContentColor[e[0]].idColor}">${e[0]}</span> : <span class="chat_content" style="color:${answerDetailsContentColor[e[0]].chatColor}">${e[1]}</span></div>`
+							return t;
+						},'')}
 						</div>
 					`
 				}
@@ -1643,13 +1664,13 @@
 					if(answerFilterText.value==''){
 						t.push(Object.assign(
 								document.createElement('div'),
-								{innerHTML : `<span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span>`}
+								{innerHTML : `<span class="chat_id" style="color:${answerDetailsContentColor[e[0]].idColor}">${e[0]}</span> <span class="chat_content" style="color:${answerDetailsContentColor[e[0]].chatColor}">${e[1]}</span>`}
 							)
 						)
 					}else if(e[answerFilterOption.value].includes(answerFilterText.value)){
 						t.push(Object.assign(
 								document.createElement('div'),
-								{innerHTML : `<span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span>`}
+								{innerHTML : `<span class="chat_id" style="color:${answerDetailsContentColor[e[0]].idColor}">${e[0]}</span> <span class="chat_content" style="color:${answerDetailsContentColor[e[0]].chatColor}">${e[1]}</span>`}
 							)
 						)
 					}
@@ -1661,13 +1682,13 @@
 					if(answerFilterText.value == ''){
 						t.push(Object.assign(
 								document.createElement('div'), 
-								{innerHTML : `<span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span></div>`}
+								{innerHTML : `<span class="chat_id" style="color:${answerDetailsContentColor[e[0]].idColor}">${e[0]}</span> <span class="chat_content" style="color:${answerDetailsContentColor[e[0]].chatColor}">${e[1]}</span></div>`}
 							)
 						)
 					}else if(e[answerFilterOption.value].includes(answerFilterText.value)){
 						t.push(Object.assign(
 								document.createElement('div'), 
-								{innerHTML : `<span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span></div>`}
+								{innerHTML : `<span class="chat_id" style="color:${answerDetailsContentColor[e[0]].idColor}">${e[0]}</span> <span class="chat_content" style="color:${answerDetailsContentColor[e[0]].chatColor}">${e[1]}</span></div>`}
 							)
 						)
 					}
@@ -1678,6 +1699,7 @@
 			
 			
 			// 정답자 보기
+			let answerUserDetailsColor = {};
 			let answerUserDetails = Object.assign(
 				document.createElement('details'),
 				{
@@ -1698,9 +1720,11 @@
 							</select>
 						</div>
 						<div class="answer_user_search_content_wrapper">
-						${Object.entries(targetAnswerUsers).reduce((t,e,i) =>
-							t += `<div><span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span></div>`
-						,'')}
+						${Object.entries(targetAnswerUsers).reduce((t,e,i) =>{
+							answerUserDetailsColor[e[0]] = {idColor:getRandomColor(), chatColor:getRandomColor()};
+							t += `<div><span class="chat_id" style="color:${answerUserDetailsColor[e[0]].idColor}">${e[0]}</span> <span class="chat_content" style="color:${answerUserDetailsColor[e[0]].chatColor}">${e[1]}</span></div>`
+							return t;
+						},'')}
 						</div>
 					`
 				}
@@ -1709,18 +1733,18 @@
 			let answerUserFilterText = answerUserContent.querySelector('#asnwer_user_search');
 			let answerUserFilterOption = answerUserContent.querySelector('#answer_user_details_search_option');
 			answerUserFilterText.onkeyup = ()=>{
-				answerUserSearchContentWrapper.replaceChildren(...Object.entries(targetRecordPage.userSelect).reduce((t,e,i) => {
+				answerUserSearchContentWrapper.replaceChildren(...Object.entries(targetAnswerUsers).reduce((t,e,i) => {
 					if(answerUserFilterText.value==''){
 						t.push(Object.assign(
 								document.createElement('div'),
-								{innerHTML : `<span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span>`}
+								{innerHTML : `<span class="chat_id" style="color:${answerUserDetailsColor[e[0]].idColor}">${e[0]}</span> <span class="chat_content" style="color:${answerUserDetailsColor[e[0]].chatColor}">${e[1]}</span>`}
 							)
 						)
 					}
 					else if(e[answerUserFilterOption.value].includes(answerUserFilterText.value)){
 						t.push(Object.assign(
 								document.createElement('div'),
-								{innerHTML : `<span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span>`}
+								{innerHTML : `<span class="chat_id" style="color:${answerUserDetailsColor[e[0]].idColor}">${e[0]}</span> <span class="chat_content" style="color:${answerUserDetailsColor[e[0]].chatColor}">${e[1]}</span>`}
 							)
 						)
 					}
@@ -1728,18 +1752,18 @@
 				},[]));
 			};
 			answerUserFilterOption.onchange = ()=>{
-				answerUserSearchContentWrapper.replaceChildren(...Object.entries(targetRecordPage.userSelect).reduce((t,e,i) => {
+				answerUserSearchContentWrapper.replaceChildren(...Object.entries(targetAnswerUsers).reduce((t,e,i) => {
 					if(answerUserFilterText.value==''){
 						t.push(Object.assign(
 								document.createElement('div'), 
-								{innerHTML : `<span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span></div>`}
+								{innerHTML : `<span class="chat_id" style="color:${answerUserDetailsColor[e[0]].idColor}">${e[0]}</span> <span class="chat_content" style="color:${answerUserDetailsColor[e[0]].chatColor}">${e[1]}</span></div>`}
 							)
 						)
 					}
 					if(e[answerUserFilterOption.value].includes(answerUserFilterText.value)){
 						t.push(Object.assign(
 								document.createElement('div'), 
-								{innerHTML : `<span class="chat_id" style="color:${getRandomColor()}">${e[0]}</span> <span class="chat_content" style="color:${getRandomColor()}">${e[1]}</span></div>`}
+								{innerHTML : `<span class="chat_id" style="color:${answerUserDetailsColor[e[0]].idColor}">${e[0]}</span> <span class="chat_content" style="color:${answerUserDetailsColor[e[0]].chatColor}">${e[1]}</span></div>`}
 							)
 						)
 					}
