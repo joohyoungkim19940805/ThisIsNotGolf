@@ -6,9 +6,15 @@ import com.github.philippheuer.credentialmanager.domain.OAuth2Credential;
 import com.github.twitch4j.TwitchClient;
 import com.github.twitch4j.TwitchClientBuilder;
 import com.github.philippheuer.events4j.simple.SimpleEventHandler;
-import com.hide_and_fps.project.twich.Configuration;
+
+import reactor.core.publisher.Flux;
+import reactor.core.scheduler.Scheduler;
+import reactor.core.scheduler.Schedulers;
 
 import java.io.InputStream;
+
+import org.springframework.web.reactive.socket.WebSocketMessage;
+import org.springframework.web.reactive.socket.WebSocketSession;
 
 public class Bot {
 
@@ -105,11 +111,15 @@ public class Bot {
         }
     }
 
-    public void start() {
+    public void start(String id) {
         // Connect to all channels
-        for (String channel : configuration.getChannels()) {
+
+    	twitchClient.getChat().joinChannel(id);
+        /*
+    	for (String channel : configuration.getChannels()) {
             twitchClient.getChat().joinChannel(channel);
         }
+        */
     }
     
     public SimpleEventHandler getTwichEventHandler() {

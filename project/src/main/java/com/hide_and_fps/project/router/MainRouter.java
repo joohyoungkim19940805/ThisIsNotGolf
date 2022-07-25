@@ -56,19 +56,48 @@ public class MainRouter {
 	}
 
 	@Bean
-	public RouterFunction<ServerResponse> twich(MainHandler webFluxHandler){
-		return RouterFunctions.route(RequestPredicates.GET("/twich")//"sexy/cute/jureureu")
+	public RouterFunction<ServerResponse> cotton__123(MainHandler webFluxHandler){
+		return RouterFunctions.route(RequestPredicates.GET("/sexy_cute_jururu")
 				.and(RequestPredicates.accept(MediaType.TEXT_HTML)),
-				webFluxHandler::twich);
+				webFluxHandler::cotton__123);
+	}
+	@Bean
+	public RouterFunction<ServerResponse> viichan6(MainHandler webFluxHandler){
+		return RouterFunctions.route(RequestPredicates.GET("/viichan6")
+				.and(RequestPredicates.accept(MediaType.TEXT_HTML)),
+				webFluxHandler::viichan6);
+	}
+	@Bean
+	public RouterFunction<ServerResponse> vo_ine(MainHandler webFluxHandler){
+		return RouterFunctions.route(RequestPredicates.GET("/vo_ine")
+				.and(RequestPredicates.accept(MediaType.TEXT_HTML)),
+				webFluxHandler::vo_ine);
+	}
+	@Bean
+	public RouterFunction<ServerResponse> gosegugosegu(MainHandler webFluxHandler){
+		return RouterFunctions.route(RequestPredicates.GET("/gosegugosegu")
+				.and(RequestPredicates.accept(MediaType.TEXT_HTML)),
+				webFluxHandler::gosegugosegu);
+	}
+	@Bean
+	public RouterFunction<ServerResponse> jingburger(MainHandler webFluxHandler){
+		return RouterFunctions.route(RequestPredicates.GET("/jingburger")
+				.and(RequestPredicates.accept(MediaType.TEXT_HTML)),
+				webFluxHandler::jingburger);
+	}
+	@Bean
+	public RouterFunction<ServerResponse> lilpaaaaaa(MainHandler webFluxHandler){
+		return RouterFunctions.route(RequestPredicates.GET("/lilpaaaaaa")
+				.and(RequestPredicates.accept(MediaType.TEXT_HTML)),
+				webFluxHandler::lilpaaaaaa);
+	}
+	@Bean
+	public RouterFunction<ServerResponse> woowakgood(MainHandler webFluxHandler){
+		return RouterFunctions.route(RequestPredicates.GET("/woowakgood")
+				.and(RequestPredicates.accept(MediaType.TEXT_HTML)),
+				webFluxHandler::woowakgood);
 	}
 
-	
-	@Bean
-	public RouterFunction<ServerResponse> testApi(MainHandler webFluxHandler){
-		return RouterFunctions.route(RequestPredicates.POST("/testApi")
-				.and(RequestPredicates.accept(MediaType.APPLICATION_JSON)),
-				webFluxHandler::testApi);
-	}
 	
 	/*
 	@SuppressWarnings("unchecked")

@@ -9,7 +9,9 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.json.simple.JSONObject;
+import org.springframework.web.reactive.socket.WebSocketMessage;
 import org.springframework.web.reactive.socket.WebSocketSession;
+import org.springframework.web.reactive.socket.adapter.ReactorNettyWebSocketSession;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.github.twitch4j.chat.events.channel.ChannelMessageEvent;
@@ -37,7 +39,8 @@ public class TwichEventMerged extends Bot{
 	 */
 	public Mono<Void> connectTwich(WebSocketSession webSocketSession) {
 		if(isRun == false) {
-			super.start();
+			String id = webSocketSession.getHandshakeInfo().getUri().getQuery().replaceAll("=", "").replaceAll("id", "").replaceAll("\"", "");
+			super.start(id);
 			ChannelNotificationOnDonation();
 			ChannelNotificationOnFollow();
 			ChannelNotificationOnSubscription();

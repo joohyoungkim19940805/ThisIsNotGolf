@@ -134,13 +134,12 @@
     	margin-bottom: 10%;
     }
 </style>
-<script type="text/javascript">
+<script th:inline="javascript">
 	const randomColor = ['#ffffff','#fff5ee','#fffafa','#f8f8ff','#fffaf0','#f5f5f5','#f0f8ff','#f0ffff','#fdf5e6','#f5fffa','#ffefd5','#ffdab9','#faf0e6','#eee8aa','#ffe4e1','#ffe4b5','#ffdead','#d2b48c','#f5deb3','#fafad2','#ffffe0','#fff8dc','#faebd7','#f5f5dc','#fffacd','#fffff0','#f0e68c','#e6e6fa','#fff0f5','#ffe4c4','#ffebcd','#deb887','#cd853f','#00ced1','#00bfff','#7fffd4','#1e90ff','#00ffff','#f0fff0','#87cefa','#afeeee','#e0ffff','#add8e6','#b0c4de','#40e0d0','#48d1cc','#00ffff','#b0e0e6','#87ceeb','#4169e1','#ff00ff','#ff00ff','#c71585','#dc143c','#ff1493','#ffb6c1','#ff69b4','#ffc0cb','#dda0dd','#ee82ee','#d8bfd8','#da70d6','#a52a2a','#e9967a','#f08080','#cd5c5c','#ffa07a','#db7093','#f4a460','#fa8072','#ff6347','#ff4500','#ff0000','#b22222','#d2691e','#bc8f8f','#ff7f50','#ff8c00','#ffa500','#b8860b','#ffd700','#ffff00','#7fff00','#7cfc00','#00ff00','#32cd32','#00ff7f','#3cb371','#adff2f','#8fbc8f','#90ee90','#98fb98','#2e8b57','#00fa9a','#20b2aa','#66cdaa','#6b8e23','#bdb76b','#daa520'];
 	const getRandomColor = () => randomColor[Math.floor( Math.random() * (Math.floor(randomColor.length-1))) ];
 	const questions = new Questions();
 	var webSocket;
-	//회사컴 cpu =  Intel(R) Core(TM) i7-8665U CPU @ 1.90GHz   2.11 GHz, gpu = Intel(R) UHD Graphics 620
-	//
+
 	const setting = {
 		chatYn : true,
 		timerYn : true,
@@ -188,8 +187,7 @@
 		chatContentArr = document.querySelector('#chat_message_content');
 	    timer = new Timer(document.querySelector('.time_wrapper'));
 	    timer.setNow();
-	    
-		webSocket = new WebSocket(`ws://${location.host}/room/twich`);
+		webSocket = new WebSocket(`ws://${location.host}/room/twich?id=[[${id}]]`);
 		webSocket.onopen = function () {
 		};
 	    webSocket.onmessage = function (event) { 
@@ -502,8 +500,38 @@
 			    <div class="menu_component">
 			    	<button type="button" class="option_menu_button" onclick="this.offsetParent.style.display = 'none'; createRecordContent();">문제 기록 보기</button>
 			    </div>
+			    <!-- 
 			    <div class="menu_component">
-			    	<button type="button" class="option_menu_button">미구현4</button>
+			    	<label for="chat_separator" style="font-size: 0.7vmax;">채팅 구분값</label>
+			    	<input id="chat_separator" type="text" class="option_menu_button" style="width:30%;" maxlength="4" onkeyup="setting.chatSeparator=this.value; this.value.length > 4? this.value = this.value.substring(0,this.maxLength) : false"/>
+			    </div>
+			    -->
+			    <div class="menu_component">
+			    	<form action="/sexy_cute_jururu" method="GET">
+			    	<label for="channel_change"></label>
+			    	<select id="channel_change" class="option_menu_button" name="id" onchange="channelChange(this,event)" onfocus="this.setAttribute('data-prev_select', this.value);">
+			    		<th:block th:each="idItem : ${idList}">
+			    			<option class="option_menu_select_item" th:value="${idItem.key}" th:text="${idItem.value}" th:attr="selected=${idItem.key.toString().equals(id)} ? 'true' : 'false'">
+			    			</option>
+			    		</th:block>
+			    	</select>
+			    	<script type="text/javascript">
+			    		function channelChange(obj, event){
+			    			let prevSelect = obj.dataset.prev_select
+			    			if(obj.value !='cotton__123'){
+			    				obj.form.action = `/${obj.value}`
+			    			}else{
+			    				obj.form.action='/sexy_cute_jururu'; 
+			    			}
+			    			
+			    			if(confirm('확인을 누를 경우 페이지가 새로고침 됩니다.')){
+			    				obj.form.submit()
+			    			}else{
+			    				obj.querySelector(`option[value="${prevSelect}"]`).selected = true;
+			    			}
+			    		}
+			    	</script>
+			    	</form>
 			    </div>
 			</div>
 		</div>
@@ -592,7 +620,7 @@
 							let offsetParent = obj.offsetParent;
 							cottonQuestionsChangeType(offsetParent, isSubjective)
 						}
-						function cottonQuestionsChangeType(targetObj, isSubjective){
+						function cottonQuestionsChangeType(targetObj, isSubjective = true){
 							if(isSubjective){
 								targetObj.querySelector('textarea#questions').style.display = 'inline-block';
 								targetObj.querySelector('.cotton_questions_multiple_choice').style.display = 'none';
@@ -816,6 +844,7 @@
 							paging = paging - 1
 							
 							let isSubjective = setting.cottonQuestions.isSubjective[paging];
+							console.log(isSubjective)
 							cottonQuestionsChangeType(questionsWrapper, isSubjective);
 							
 							let multipleChoiceInputList = questionsContent.querySelectorAll('.cotton_questions_multiple_choice input.multiple_choice_text')
@@ -1527,6 +1556,14 @@
 			<a href="javascript:void(0);" style="color: white;cursor: pointer;" onclick="recordPagingClickEvent(this,event, -1);">◀</a>
 			<a href="javascript:void(0);" style="color: white;cursor: pointer;" onclick="recordPagingClickEvent(this,event, 1);">▶</a>
 			<script>
+				window.addEventListener('click',function(event){
+					let chatRecord = document.querySelector('#chat_record_wrapper')
+					let rect = chatRecord.getBoundingClientRect()
+					if(chatRecord.style.display == 'flex' &&
+					(event.x < rect.left || event.x > rect.right) ){// && event.composedPath().some(e=>e===document.querySelector('#chat_record_wrapper')) == false){
+						chatRecord.style.display = 'none';
+					}
+				});
 				function recordPagingClickEvent(obj, event, pagingValue){
 					let recordPageContent = obj.closest('#chat_record_wrapper').querySelector('#chat_record_content');
 					let pagingNumber = Number(recordPageContent.dataset.record_page) + pagingValue;
@@ -1544,42 +1581,6 @@
 		</div>
    		<div id="chat_record_content" data-record_page="0">
    		</div>
-		<!-- 
-		<span>주관식/객관식</span>
-		<div>문제 내용</div>
-		<details class="chat_record_statistics_details">
-			<summary class="chat_record_statistics_summary">통계보기</summary>
-			<div style="display: flex;">
-			    <div style="width: 50%;
-			    display: grid;
-			    align-items: center;
-			    font-size: 1.2vmax;
-			    font-weight: bold;">
-			        <label class="questions_label">ㄹㅇ</label>
-			        <span class="questions_user_select_number">
-			        </span>
-			        <div class="chat_questions_chart">
-			            <div class="chat_questions_chart_graph" style="background-color:rgb(255, 288, 181); width:24%"></div>
-			        </div>
-			    </div>
-			</div>
-		</details>
-		<details class="chat_record_answer_details">
-			<summary class="chat_record_answer_summary">주폭도들 정답/오답 내용 보기</summary>
-			<div>
-			</div>
-		</details>
-		<details class="chat_record_answer_user_details">
-			<summary class="chat_record_answer_user_summary">정답자 보기</summary>
-			<div>
-			</div>
-		</details>
-		<details class="chat_record_answer_statistics_details">
-			<summary class="chat_record_answer_statistics_summary">정답 내용 집계 보기(주관식 전용)</summary>
-			<div>
-			</div>
-		</details>
-		-->
 	</div>
 	<script>
 		function createRecordContent(){
@@ -1772,15 +1773,89 @@
 			}
 			answerUserDetails.append(answerUserContent);
 			
-			// 정답 내용 집계 보기(주관식전용)
-			/*let answerStatisticsDetails = Object.assign(
+			// 정답 내용 집계 보기(전체유저)
+			//setting.questionsRecord.flatMap(e=>Object.entries(e.answerUserList))
+			let totalSumUserList = Object.entries(setting.questionsRecord.flatMap(e=>Object.entries(e.answerUserList)).reduce((t,e,i)=>{
+			    if(t.hasOwnProperty(e[0])){
+			        t[e[0]]++;
+			    }else{
+			        t[e[0]] = 1;
+			    }
+			    return t
+			},{})).sort((a,b)=>b[1]-a[1]);
+			let totalCountUserDetailsColor = {};
+			let totalCountUserDetails = Object.assign(
 				document.createElement('details'),
 				{
-					innerHTML : `<summary class="chat_record_answer_statistics_summary"></summary>`,
-					className : 'chat_record_answer_statistics_details'
+					innerHTML : `<summary class="total_count_user_summary">정답 횟수 집계 보기(전체 유저)</summary>`,
+					className : 'total_count_user_details'
 				}
-			)*/
-			recordWrapper.append(...[subjectiveTitle, questionsTitle, statisticsDetails, answerDetails, answerUserDetails]);
+			);
+			let totalCountUserContent = Object.assign(
+				document.createElement('div'),
+				{	className : 'total_count_user_search_wrapper',
+					innerHTML : `
+						<div class="total_count_user_search_filter_wrapper">
+							<label for="total_count_user_search">유저 내용 또는 닉네임으로 검색</label>
+							<input id="total_count_user_search" type="text"/>
+							<select id="total_count_user_search_option">
+								<option value="0">닉네임</option>
+								<option value="1">내용</option>
+							</select>
+						</div>
+						<div class="total_count_user_search_content_wrapper">
+						${totalSumUserList.reduce((t,e,i) =>{
+							totalCountUserDetailsColor[e[0]] = {idColor:getRandomColor(), chatColor:getRandomColor()};
+							t += `<div><span class="chat_id" style="color:${totalCountUserDetailsColor[e[0]].idColor}">${e[0]}</span> <span class="chat_content" style="color:${totalCountUserDetailsColor[e[0]].chatColor}">${e[1]}</span></div>`
+							return t;
+						},'')}
+						</div>
+					`
+				}
+			);
+			let totalCountUserContentWrapper = totalCountUserContent.querySelector('.total_count_user_search_content_wrapper');
+			let totalCountUserFilterText = totalCountUserContent.querySelector('#total_count_user_search');
+			let totalCountUserFilterOption = totalCountUserContent.querySelector('#total_count_user_search_option');
+			totalCountUserFilterText.onkeyup = ()=>{
+				totalCountUserContentWrapper.replaceChildren(...totalSumUserList.reduce((t,e,i) => {
+					if(totalCountUserFilterText.value==''){
+						t.push(Object.assign(
+								document.createElement('div'),
+								{innerHTML : `<span class="chat_id" style="color:${answerUserDetailsColor[e[0]].idColor}">${e[0]}</span> <span class="chat_content" style="color:${answerUserDetailsColor[e[0]].chatColor}">${e[1]}</span>`}
+							)
+						)
+					}
+					else if(e[totalCountUserFilterText.value].includes(totalCountUserFilterText.value)){
+						t.push(Object.assign(
+								document.createElement('div'),
+								{innerHTML : `<span class="chat_id" style="color:${answerUserDetailsColor[e[0]].idColor}">${e[0]}</span> <span class="chat_content" style="color:${answerUserDetailsColor[e[0]].chatColor}">${e[1]}</span>`}
+							)
+						)
+					}
+					return t;
+				},[]));
+			};
+			totalCountUserFilterOption.onchange = ()=>{
+				totalCountUserContentWrapper.replaceChildren(...totalSumUserList.reduce((t,e,i) => {
+					if(totalCountUserFilterText.value==''){
+						t.push(Object.assign(
+								document.createElement('div'), 
+								{innerHTML : `<span class="chat_id" style="color:${answerUserDetailsColor[e[0]].idColor}">${e[0]}</span> <span class="chat_content" style="color:${answerUserDetailsColor[e[0]].chatColor}">${e[1]}</span></div>`}
+							)
+						)
+					}
+					if(e[totalCountUserFilterText.value].includes(totalCountUserFilterText.value)){
+						t.push(Object.assign(
+								document.createElement('div'), 
+								{innerHTML : `<span class="chat_id" style="color:${answerUserDetailsColor[e[0]].idColor}">${e[0]}</span> <span class="chat_content" style="color:${answerUserDetailsColor[e[0]].chatColor}">${e[1]}</span></div>`}
+							)
+						)
+					}
+					return t;
+				},[]));
+			}
+			totalCountUserDetails.append(totalCountUserContent);
+			recordWrapper.append(...[subjectiveTitle, questionsTitle, statisticsDetails, answerDetails, answerUserDetails, totalCountUserDetails]);
 			
 		}
 	</script>

@@ -1,9 +1,11 @@
 package com.hide_and_fps.project.handler;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
@@ -17,13 +19,27 @@ import org.springframework.web.reactive.function.server.ServerResponse;
 import com.hide_and_fps.project.entity.MainEntity;
 
 import reactor.core.publisher.Mono;
+import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
-
+import static java.util.Map.ofEntries;
+import static java.util.Map.entry;
+import static java.util.List.of;
 @Component
 public class MainHandler {
 	
 	private AtomicInteger counter = new AtomicInteger(0);
 	private AtomicInteger reqCounter = new AtomicInteger(0);
+	private Entry<String,Object> channelInfo = entry("idList", List.of(
+			entry("cotton__123","주르르"),
+			entry("viichan6","비챤"),
+			entry("vo_ine","아이네"),
+			entry("gosegugosegu","고세구"),
+			entry("jingburger","징버거"),
+			entry("lilpaaaaaa","릴파"),
+			entry("woowakgood","우왁굳"),
+			entry("111roentgenium","뢴트게늄")
+			)
+		);
 	
 	public Mono<ServerResponse> index(ServerRequest request){
 		final Map<String, MainEntity> data = new HashMap<>();
@@ -32,56 +48,51 @@ public class MainHandler {
 	}
 	
 	public Mono<ServerResponse> homeTest(ServerRequest request){
-		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/homeTest", Map.ofEntries(
-					Map.entry("data", new MainEntity("a", (long)9999, "asasas", (int)10, 100, 100))
+		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/homeTest", ofEntries(
+					entry("data", new MainEntity("a", (long)9999, "asasas", (int)10, 100, 100))
 				));
 	}
 	
 	public Mono<ServerResponse> mainPage(ServerRequest request){
-		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/mainPage", Map.ofEntries(
-					Map.entry("data", new MainEntity("a", (long)9999, "asasas", (int)10, 100, 100))
+		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/mainPage", ofEntries(
+					entry("data", new MainEntity("a", (long)9999, "asasas", (int)10, 100, 100))
 				));
 	}
 	
-	public Mono<ServerResponse> twich(ServerRequest request){
-		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/twich", Map.ofEntries(
-					Map.entry("data", new MainEntity("a", (long)9999, "asasas", (int)10, 100, 100))
-				));
+	public Mono<ServerResponse> cotton__123(ServerRequest request){
+		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/twich", ofEntries(
+				entry("id", "cotton__123"), channelInfo
+			));
 	}
-	
-	@SuppressWarnings("unchecked")
-	public Mono<ServerResponse> testApi(ServerRequest request){
-		return request.bodyToMono(JSONObject.class)
-		        .publishOn(Schedulers.elastic())
-		        .switchIfEmpty(Mono.error(new IllegalStateException("user required")))
-		        .flatMap(attributes -> {
-		            
-		        	ArrayList attrArr = (ArrayList) attributes.get("attributes");
-		            
-		        	HashMap map = (HashMap) attrArr.parallelStream()
-		            				.collect(Collectors.toMap(k-> ((Map)k).get("external_id"), v -> "", (k1, k2) -> k2));
-		            int j = counter.addAndGet(map.size());
-		            if(j > 3200000) {
-			            System.out.println("totalCount : " + counter.get());
-		            }
-		            //return ServerResponse.ok().build();
-		            return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(
-							Mono.just( new JSONObject (Map.ofEntries( Map.entry("attributes_processed", map.size()) ) ))
-							, JSONObject.class);
-		        })
-		        .onErrorResume(err -> {
-		            err.printStackTrace();
-		            
-		            return ServerResponse.badRequest().build();
-		        });
-
-		
-		/*
-		
-		return ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(
-				Mono.just( Map.ofEntries( Map.entry("resCount", counter.getAndIncrement()) ) )
-				, Map.class);
-		 */
+	public Mono<ServerResponse> viichan6(ServerRequest request){
+		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/twich", ofEntries(
+				entry("id", "viichan6"), channelInfo
+			));
+	}
+	public Mono<ServerResponse> vo_ine(ServerRequest request){
+		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/twich", ofEntries(
+				entry("id", "vo_ine"), channelInfo
+			));
+	}
+	public Mono<ServerResponse> gosegugosegu(ServerRequest request){
+		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/twich", ofEntries(
+				entry("id", "gosegugosegu"), channelInfo
+			));
+	}
+	public Mono<ServerResponse> jingburger(ServerRequest request){
+		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/twich", ofEntries(
+				entry("id", "jingburger"), channelInfo
+			));
+	}
+	public Mono<ServerResponse> lilpaaaaaa(ServerRequest request){
+		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/twich", ofEntries(
+				entry("id", "lilpaaaaaa"), channelInfo
+			));
+	}
+	public Mono<ServerResponse> woowakgood(ServerRequest request){
+		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/twich", ofEntries(
+				entry("id", "woowakgood"), channelInfo
+			));
 	}
 	
 }
