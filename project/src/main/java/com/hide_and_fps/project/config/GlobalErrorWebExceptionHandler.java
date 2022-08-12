@@ -24,9 +24,9 @@ import java.util.Map;
 @Order(-2)
 public class GlobalErrorWebExceptionHandler extends AbstractErrorWebExceptionHandler {
 
-    public GlobalErrorWebExceptionHandler(GlobalErrorAttributes g, ApplicationContext applicationContext,
+    public GlobalErrorWebExceptionHandler(GlobalErrorAttributes errorAttribute, ApplicationContext applicationContext,
             ServerCodecConfigurer serverCodecConfigurer) {
-        super(g, new WebProperties.Resources(), applicationContext);
+        super(errorAttribute, new WebProperties.Resources(), applicationContext);
         super.setMessageWriters(serverCodecConfigurer.getWriters());
         super.setMessageReaders(serverCodecConfigurer.getReaders());
     }

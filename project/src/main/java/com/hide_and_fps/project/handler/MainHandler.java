@@ -24,6 +24,8 @@ import reactor.core.scheduler.Schedulers;
 import static java.util.Map.ofEntries;
 import static java.util.Map.entry;
 import static java.util.List.of;
+import static org.springframework.web.reactive.function.server.ServerResponse.ok;
+
 @Component
 public class MainHandler {
 	
@@ -40,58 +42,69 @@ public class MainHandler {
 			entry("111roentgenium","뢴트게늄")
 			)
 		);
-	
 	public Mono<ServerResponse> index(ServerRequest request){
 		final Map<String, MainEntity> data = new HashMap<>();
 		data.put("data", new MainEntity("b", (long)10000, "trrtrtrt", (int)20, 200, 2200));
-		return ServerResponse.ok().contentType(MediaType.TEXT_HTML).render("index", data);
+		return ok().contentType(MediaType.TEXT_HTML).render("index", data);
 	}
-	
-	public Mono<ServerResponse> homeTest(ServerRequest request){
-		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/homeTest", ofEntries(
+	public Mono<ServerResponse> mainPage(ServerRequest request){
+		return ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/mainPage", ofEntries(
 					entry("data", new MainEntity("a", (long)9999, "asasas", (int)10, 100, 100))
 				));
 	}
 	
-	public Mono<ServerResponse> mainPage(ServerRequest request){
-		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/mainPage", ofEntries(
+
+	
+	public Mono<ServerResponse> aquarium(ServerRequest request){
+		final Map<String, MainEntity> data = new HashMap<>();
+		data.put("data", new MainEntity("b", (long)10000, "trrtrtrt", (int)20, 200, 2200));
+		return ok().contentType(MediaType.TEXT_HTML).render("test/aquarium", data);
+	}
+	
+	public Mono<ServerResponse> homeTest(ServerRequest request){
+		return ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/homeTest", ofEntries(
 					entry("data", new MainEntity("a", (long)9999, "asasas", (int)10, 100, 100))
 				));
 	}
 	
 	public Mono<ServerResponse> cotton__123(ServerRequest request){
-		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/twich", ofEntries(
+		return ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("test/twich", ofEntries(
 				entry("id", "cotton__123"), channelInfo
 			));
 	}
 	public Mono<ServerResponse> viichan6(ServerRequest request){
-		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/twich", ofEntries(
+		return ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("test/twich", ofEntries(
 				entry("id", "viichan6"), channelInfo
 			));
 	}
 	public Mono<ServerResponse> vo_ine(ServerRequest request){
-		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/twich", ofEntries(
+		return ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("test/twich", ofEntries(
 				entry("id", "vo_ine"), channelInfo
 			));
 	}
 	public Mono<ServerResponse> gosegugosegu(ServerRequest request){
-		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/twich", ofEntries(
+		return ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("test/twich", ofEntries(
 				entry("id", "gosegugosegu"), channelInfo
 			));
 	}
 	public Mono<ServerResponse> jingburger(ServerRequest request){
-		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/twich", ofEntries(
+		return ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("test/twich", ofEntries(
 				entry("id", "jingburger"), channelInfo
 			));
 	}
 	public Mono<ServerResponse> lilpaaaaaa(ServerRequest request){
-		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/twich", ofEntries(
+		return ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("test/twich", ofEntries(
 				entry("id", "lilpaaaaaa"), channelInfo
 			));
 	}
 	public Mono<ServerResponse> woowakgood(ServerRequest request){
-		return ServerResponse.ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("content/twich", ofEntries(
+		return ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("test/twich", ofEntries(
 				entry("id", "woowakgood"), channelInfo
+			));
+	}
+	public Mono<ServerResponse> roentgenium(ServerRequest request){
+		return ok().contentType(MediaType.parseMediaType("text/html;charset=UTF-8")).render("test/twich", ofEntries(
+				entry("id", "111roentgenium"), channelInfo
 			));
 	}
 	

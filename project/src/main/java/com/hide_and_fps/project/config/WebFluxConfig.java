@@ -25,6 +25,7 @@ import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hide_and_fps.project.util.CommonUtil;
 
 import nz.net.ultraq.thymeleaf.layoutdialect.LayoutDialect;
 
@@ -45,10 +46,17 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 		configurer.defaultCodecs().jackson2JsonDecoder(
 			new Jackson2JsonDecoder(objectMapper)
 		);
+		// * @param byteCount the max number of bytes to buffer, or -1 for unlimited
+		//configurer.defaultCodecs().maxInMemorySize(-1);
 	}
 	@Override
 	public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
 		this.context = context;
+	}
+	
+	@Override
+	public void configureViewResolvers(ViewResolverRegistry registry) {
+	    registry.viewResolver(thymeleafReactiveViewResolver());
 	}
 	
 	@Bean
@@ -81,15 +89,10 @@ public class WebFluxConfig implements ApplicationContextAware, WebFluxConfigurer
 	    return viewResolver;
 	}
 	
-	@Override
-	public void configureViewResolvers(ViewResolverRegistry registry) {
-	    registry.viewResolver(thymeleafReactiveViewResolver());
+	@Bean
+	public CommonUtil commonUtil() {
+		return new CommonUtil();
 	}
-	
-	//@Bean
-	//public LayoutDialect layoutDialect() {
-	//   return new LayoutDialect();
-	//}
 }
 
 

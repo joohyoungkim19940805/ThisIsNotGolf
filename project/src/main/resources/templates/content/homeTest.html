@@ -322,5 +322,78 @@
 			}
 		
 		</script>
+		<div class="words"></div>
+		<script th:inline="javascript">
+			var grammar = Object.freeze([
+				''
+			])
+			var SpeechRecognition = SpeechRecognition || webkitSpeechRecognition;
+			var SpeechGrammarList = SpeechGrammarList || window.webkitSpeechGrammarList;
+			// 인스턴스 생성
+			const Recognition = new SpeechRecognition();
+			const GrammarList = new SpeechGrammarList();
+			GrammarList.addFromString('#JSGF V1.0; grammar actions; public <actions> = ' + grammar.join(' | ') + ';', 100000);
+			//Recognition.grammars = GrammarList;
+			// true면 음절을 연속적으로 인식하나 false면 한 음절만 기록함
+			Recognition.interimResults = true;
+			// 값이 없으면 HTML의 <html lang="en">을 참고합니다. ko-KR, en-US
+			Recognition.lang = "ko-KR";
+			// true means continuous, and false means not continuous (single result each time.)
+			// true 일 경우 연속적 음성 ~ false일 경우 단일음성 (음절과 다름)
+			// false 일 경우 단일 음성 인식 후 종료
+			Recognition.continuous = true;
+			// 숫자가 작을수록 발음대로 적고, 크면 문장의 적합도에 따라 알맞은 단어로 대체합니다.
+			// maxAlternatives가 크면 이상한 단어도 문장에 적합하게 알아서 수정합니다.
+			// 설명과는 다르게 grammars List 를 구축해야 함 ( value는 ragne는 어떻게 되어 있는지? grammars list 의 length인지? )
+			Recognition.maxAlternatives = 0;
+			//console.log(Recognition.grammars);
+			let p = document.createElement("p");
+			p.classList.add("para");
+
+			let words = document.querySelector(".words");
+			words.appendChild(p);
+
+			let speechToText = "";
+			/*
+			resultIndex: 6
+			results: SpeechRecognitionResultList
+				0: SpeechRecognitionResult
+					0: SpeechRecognitionAlternative {transcript: '여보세요?', confidence: 0}
+				1: SpeechRecognitionResult
+					0: SpeechRecognitionAlternative {transcript: '너무 다르게 나오잖아.', confidence: 0}
+			*/
+			Recognition.addEventListener("result", (e) => {
+				let interimTranscript = "";
+				//console.log(e);
+				//console.log(e.results[e.resultIndex]);
+				let target = e.results[e.resultIndex];
+			 	//console.log(target[0].confidence);
+			  	if(target.isFinal){
+				  	interimTranscript = target[0].transcript;
+			  	}else{
+					  console.log(target[0].transcript);
+			  	}
+			  	/*
+			  	for (let i = e.resultIndex, len = e.results.length; i < len; i++) {
+			    	let transcript = e.results[i][0].transcript;
+			    	console.log(transcript);
+			    	if (e.results[i].isFinal) {
+			      		speechToText += transcript;
+			    	} else {
+			      		interimTranscript += transcript;
+			    	}
+			  	}
+				*/
+				//console.log(interimTranscript);
+				p.textContent = interimTranscript;
+			});
+
+			// 음성인식이 끝나면 자동으로 재시작합니다.
+			// Recognition.addEventListener("end", recognition.start);
+
+			// 음성 인식 시작
+			Recognition.start();
+			Recognition.onend = () => Recognition.start();
+		</script>
 	</main>
 </html>

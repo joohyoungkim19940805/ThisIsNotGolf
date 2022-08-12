@@ -22,6 +22,7 @@ import com.github.twitch4j.chat.events.channel.SubscriptionEvent;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 public class TwichEventMerged extends Bot{
+	private final Queue<JSONObject> messageRoom = new ConcurrentLinkedQueue<>();
 	
 	private boolean isRun = false;
 	private Flux<String> eventFlux = Flux.generate(sink -> {
@@ -51,9 +52,6 @@ public class TwichEventMerged extends Bot{
 		return webSocketSession.send(intervalFlux.map(webSocketSession::textMessage));
 	}
 	
-	public final Queue<JSONObject> messageRoom = new ConcurrentLinkedQueue<>();
-
-	
     /** 도네이션 이벤트 등록
      * Register events of this class with the EventManager/EventHandler
      *
@@ -65,6 +63,7 @@ public class TwichEventMerged extends Bot{
     public JSONObject onDonation(DonationEvent event) {
     	if(session != null && session.isOpen() == false) {
     		super.close();
+    		isRun = false;
     	}
     	return new JSONObject(Map.ofEntries(Map.entry("donation", Map.ofEntries(
 				/* *
